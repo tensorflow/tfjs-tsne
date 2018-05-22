@@ -24,7 +24,11 @@ import {KNNEstimator} from './knn';
 import {TSNEOptimizer} from './tsne_optimizer';
 import {tsne} from './tsne';
 
+// Which of these exports is a consumer of the library expected to use?
+// Could it reduce to just "tnse"?
 export {EmbeddingDrawer, KNNEstimator, TSNEOptimizer, tsne};
+
+// e.g. I suspect these are only internally used?
 export {gl_util as gl_util};
 export {dataset_util as dataset_util};
 export {tfc as tfc};

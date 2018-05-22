@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+ // maybe some comments with what "rearranged" might mean in this context.
+ 
  // Class for rearranged data in a WebGL Texture
  export interface RearrangedData {
    numPoints: number;
