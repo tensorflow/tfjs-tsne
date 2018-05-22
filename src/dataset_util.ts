@@ -76,6 +76,8 @@ export function generateDistanceComputationSource(format: RearrangedData):
   return source;
 }
 
+// I don't think any thing calls this? 
+
 // Returns the GLSL source code needed for
 // computing distances between MNIST images
 export function generateMNISTDistanceComputationSource(): string {
@@ -207,6 +209,10 @@ export function generateKNNLineTexture(numPoints: number, numNeighbors: number):
 
   return {knnGraph, dataShape};
 }
+
+// Does anything other than the tests use these functions? If not they should to
+// the test file or a test utils file. This would make it easier to follow what
+// key to the implementation. 
 
 // Generates the texture for a KNN containing a number of synthetic clusters
 export function generateKNNClusterData(

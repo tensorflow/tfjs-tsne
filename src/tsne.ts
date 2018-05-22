@@ -21,6 +21,9 @@ import {KNNEstimator} from './knn';
 import {RearrangedData} from './interfaces';
 import {tensorToDataTexture} from './tensor_to_data_texture';
 
+// Add JSDoc to exported symbols (can skip interfaces.
+
+// default value comments should move to constructor
 export interface TSNEConfiguration{
   perplexity?: number;            //Default: 30
   exaggeration?: number;          //Default: 4
@@ -29,6 +32,7 @@ export interface TSNEConfiguration{
   momentum?: number;              //Default: 0.8
 }
 
+// Does this data tensor have to have any particular shape?
 export function tsne(data: tfc.Tensor, config?: TSNEConfiguration,
                             verbose?: boolean){
   return new TSNE(data, config, verbose);
@@ -71,6 +75,9 @@ export class TSNE {
     }
   }
 
+  // Any particular reason not to call this initialize function immediately
+  // on construction?  
+  // Also should we move public functions up.
   private async initialize(): Promise<void>{
     //Default parameters
     let perplexity = 30;
@@ -106,6 +113,7 @@ export class TSNE {
     this.numNeighbors = Math.floor((perplexity * 3) / 4) * 4;
     this.packedData = await tensorToDataTexture(this.data);
 
+    // can just do 'if (this.verbose) {' here and elsewhere
     if ( this.verbose === true ){
       console.log(`Number of points ${this.numPoints}`);
       console.log(`Number of dimensions ${this.numDimensions}`);
@@ -131,12 +139,16 @@ export class TSNE {
     this.optimizer.momentum = momentum;
   }
 
+  // General comment for these three functions. Are there any orders of calling
+  // these functions that are invalid? i.e. can i call these in any order in my
+  // program and have that make sense?  
   async compute(iterations: number): Promise<void>{
     await this.initialize();
     await this.iterateKnn(100); //TODO -> get it from the estimator
     await this.iterate(iterations);
   }
 
+  // should we have a default param of 1 to make it easy to call in a loop?
   async iterateKnn(iterations: number): Promise<boolean>{
     if(this.initialized === false){
       await this.initialize();
@@ -147,6 +159,8 @@ export class TSNE {
     }
     return true; //TODO
   }
+
+  // should we have a default param of 1 to make it easy to call in a loop?
   async iterate(iterations: number): Promise<void>{
     if(this.probabilitiesInitialized === false){
       await this.initializeProbabilities();

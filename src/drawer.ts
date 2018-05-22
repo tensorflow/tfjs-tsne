@@ -19,6 +19,8 @@ import * as tfc from '@tensorflow/tfjs-core';
 import * as drawer_util from './drawer_util';
 import * as gl_util from './gl_util';
 
+// Needs some top level comments. Not sure what uses this.
+
 export interface DrawableEmbedding {
   minX: number;
   maxX: number;
