@@ -91,8 +91,8 @@ async function start() {
   const data = await loadData();
   console.log(data);
 
-  const inputData = data.datasetImages;
-  const labelsTensor = tf.tensor2d(data.datasetLabels, [NUM_IMAGES, NUM_CLASSES]);
+  const inputData = data.testImages;
+  const labelsTensor = tf.tensor2d(data.testLabels, [NUM_IMAGES, NUM_CLASSES]);
   const labels = labelsTensor.argMax(1).dataSync();
 
 
