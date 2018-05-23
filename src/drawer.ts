@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs-core';
 import * as drawer_util from './drawer_util';
 import * as gl_util from './gl_util';
 
@@ -32,7 +32,7 @@ export interface DrawableEmbedding {
 
 export class EmbeddingDrawer {
   private numPoints: number;
-  private gpgpu: tfc.webgl.GPGPUContext;
+  private gpgpu: tf.webgl.GPGPUContext;
 
   private simpleEmbeddingDrawerProgram: WebGLProgram;
   private coloredEmbeddingDrawerProgram: WebGLProgram;
@@ -44,7 +44,7 @@ export class EmbeddingDrawer {
 
   constructor(numPoints: number) {
     this.numPoints = numPoints;
-    const backend = tfc.ENV.findBackend('webgl') as tfc.webgl.MathBackendWebGL;
+    const backend = tf.ENV.findBackend('webgl') as tf.webgl.MathBackendWebGL;
     this.gpgpu = backend.getGPGPUContext();
     this.initializePrograms();
   }
@@ -107,7 +107,7 @@ export class EmbeddingDrawer {
     }
 
     this.vertexIdBuffer =
-        tfc.webgl.webgl_util.createStaticVertexBuffer(this.gpgpu.gl, vertexId);
+        tf.webgl.webgl_util.createStaticVertexBuffer(this.gpgpu.gl, vertexId);
 
     this.splatTextureDrawerProgram =
         drawer_util.createSplatTextureDrawerProgram(this.gpgpu);

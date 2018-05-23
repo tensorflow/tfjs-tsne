@@ -29,12 +29,13 @@ export default {
         commonjs({include: 'node_modules/**'}),
       ],
   output: {
-    extend: true,
+    extend: false,
     banner:
-        `// @tensorflow/tfjs-core Copyright ${(new Date).getFullYear()} Google`,
+        `// @tensorflow/tfjs-tsne Copyright ${(new Date).getFullYear()} Google`,
     file: 'dist/tfjs-tsne.js',
     format: 'umd',
-    name: 'tf',
+    name: 'tsne',
+    globals: {'@tensorflow/tfjs-core': 'tf'}
   },
   external: ['@tensorflow/tfjs-core'],
   onwarn:

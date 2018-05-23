@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs-core';
 
 import * as gl_util from './gl_util';
-import * as tf_knn from './knn';
 import {RearrangedData} from './interfaces';
+import * as tf_knn from './knn';
 
 function iterate(knn: tf_knn.KNNEstimator, knnTechnique: string) {
   if (knnTechnique === 'brute force') {
@@ -34,9 +34,8 @@ function iterate(knn: tf_knn.KNNEstimator, knnTechnique: string) {
 }
 
 function knnIntegrityTests(
-    knnTechnique: string, dataTexture: WebGLTexture,
-    dataFormat: RearrangedData, numPoints: number, numDimensions: number,
-    numNeighs: number) {
+    knnTechnique: string, dataTexture: WebGLTexture, dataFormat: RearrangedData,
+    numPoints: number, numDimensions: number, numNeighs: number) {
   it(`kNN increments the iterations
       (${knnTechnique}, #neighs: ${numNeighs})`,
      () => {
@@ -58,7 +57,7 @@ function knnIntegrityTests(
        iterate(knn, knnTechnique);
        iterate(knn, knnTechnique);
 
-       tfc.tidy(() => {
+       tf.tidy(() => {
          const distancesTensor = knn.distancesTensor();
          expect(checkHeap(distancesTensor, numPoints, numNeighs)).toBe(true);
        });
@@ -74,7 +73,7 @@ function knnIntegrityTests(
        iterate(knn, knnTechnique);
        iterate(knn, knnTechnique);
 
-       tfc.tidy(() => {
+       tf.tidy(() => {
          const indices = knn.indicesTensor();
          expect(checkDuplicates(indices, numPoints, numNeighs)).toBe(true);
        });
@@ -93,7 +92,7 @@ function knnIntegrityTests(
        iterate(knn, knnTechnique);
        iterate(knn, knnTechnique);
 
-       tfc.tidy(() => {
+       tf.tidy(() => {
          const indices = knn.indicesTensor();
          expect(checkInvalidNeighbors(indices, numPoints, numNeighs))
              .toBe(true);
@@ -115,7 +114,7 @@ describe('KNN [line]\n', () => {
       vec[i * numDimensions + d] = 255. * i / numPoints;
     }
   }
-  const backend = tfc.ENV.findBackend('webgl') as tfc.webgl.MathBackendWebGL;
+  const backend = tf.ENV.findBackend('webgl') as tf.webgl.MathBackendWebGL;
   const gpgpu = backend.getGPGPUContext();
   const dataTexture = gl_util.createAndConfigureUByteTexture(
       gpgpu.gl, pointsPerRow * numDimensions / 4, numRows, 4, vec);
@@ -167,8 +166,8 @@ describe('KNN [line]\n', () => {
 
 ////////////////////////////////////////////////////////////
 
-//TODO switch to await data() in the test
-function linearTensorAccess(tensor: tfc.Tensor, i: number): number {
+// TODO switch to await data() in the test
+function linearTensorAccess(tensor: tf.Tensor, i: number): number {
   const elemPerRow = tensor.shape[1];
   const col = i % elemPerRow;
   const row = Math.floor(i / elemPerRow);
@@ -176,8 +175,7 @@ function linearTensorAccess(tensor: tfc.Tensor, i: number): number {
 }
 
 // Check if the returned kNN preserves the heap property
-function checkHeap(
-    distances: tfc.Tensor, numPoints: number, numNeighs: number) {
+function checkHeap(distances: tf.Tensor, numPoints: number, numNeighs: number) {
   const eps = 10e-5;
   for (let i = 0; i < numPoints; ++i) {
     const s = i * numNeighs;
@@ -216,7 +214,7 @@ function checkHeap(
 
 // check if there are no dubplicates in the kNN
 function checkDuplicates(
-    indices: tfc.Tensor, numPoints: number, numNeighs: number) {
+    indices: tf.Tensor, numPoints: number, numNeighs: number) {
   let duplicates = 0;
   for (let i = 0; i < numPoints; ++i) {
     const s = i * numNeighs;
@@ -240,7 +238,7 @@ function checkDuplicates(
 
 // check if there are no dubplicates in the kNN
 function checkInvalidNeighbors(
-    indices: tfc.Tensor, numPoints: number, numNeighs: number) {
+    indices: tf.Tensor, numPoints: number, numNeighs: number) {
   // Revise with the new access
   let invalid = 0;
   for (let i = 0; i < numPoints; ++i) {

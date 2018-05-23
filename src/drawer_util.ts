@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs-core';
 import * as gl_util from './gl_util';
 
 // TODO revise all these programs ( a bit of a hack right now)
 // Directly draw a texture on screen
-export function createTextureDrawerProgram(gpgpu: tfc.webgl.GPGPUContext):
+export function createTextureDrawerProgram(gpgpu: tf.webgl.GPGPUContext):
     WebGLProgram {
   const fragmentShaderSource = `
     precision highp float;
@@ -39,26 +39,26 @@ export function createTextureDrawerProgram(gpgpu: tfc.webgl.GPGPUContext):
 }
 
 export function executeTextureDrawerProgram(
-    gpgpu: tfc.webgl.GPGPUContext, program: WebGLProgram, texture: WebGLTexture,
+    gpgpu: tf.webgl.GPGPUContext, program: WebGLProgram, texture: WebGLTexture,
     width: number, height: number, targetTex?: WebGLTexture) {
   const gl = gpgpu.gl;
   if (targetTex != null) {
     gpgpu.setOutputMatrixTexture(targetTex, height, width);
   } else {
-    tfc.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
+    tf.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
   }
 
   gpgpu.setProgram(program);
 
-  const textureLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const textureLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'texture');
   gpgpu.setInputMatrixTexture(texture, textureLoc, 0);
 
-  const widthLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const widthLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'width');
   gl.uniform1f(widthLoc, width);
 
-  const heightLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const heightLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'height');
   gl.uniform1f(heightLoc, height);
 
@@ -70,7 +70,7 @@ export function executeTextureDrawerProgram(
 
 // Draw a texture on screen by averaging the 4 channels
 export function createAvgChannelTextureDrawerProgram(
-    gpgpu: tfc.webgl.GPGPUContext): WebGLProgram {
+    gpgpu: tf.webgl.GPGPUContext): WebGLProgram {
   const fragmentShaderSource = `
     precision highp float;
     uniform sampler2D texture;
@@ -90,26 +90,26 @@ export function createAvgChannelTextureDrawerProgram(
 }
 
 export function executeAvgChannelTextureDrawerProgram(
-    gpgpu: tfc.webgl.GPGPUContext, program: WebGLProgram, texture: WebGLTexture,
+    gpgpu: tf.webgl.GPGPUContext, program: WebGLProgram, texture: WebGLTexture,
     width: number, height: number, targetTex?: WebGLTexture) {
   const gl = gpgpu.gl;
   if (targetTex != null) {
     gpgpu.setOutputMatrixTexture(targetTex, height, width);
   } else {
-    tfc.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
+    tf.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
   }
 
   gpgpu.setProgram(program);
 
-  const textureLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const textureLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'texture');
   gpgpu.setInputMatrixTexture(texture, textureLoc, 0);
 
-  const widthLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const widthLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'width');
   gl.uniform1f(widthLoc, width);
 
-  const heightLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const heightLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'height');
   gl.uniform1f(heightLoc, height);
 
@@ -119,7 +119,7 @@ export function executeAvgChannelTextureDrawerProgram(
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 
-export function createSplatTextureDrawerProgram(gpgpu: tfc.webgl.GPGPUContext):
+export function createSplatTextureDrawerProgram(gpgpu: tf.webgl.GPGPUContext):
     WebGLProgram {
   const fragmentShaderSource = `
     precision highp float;
@@ -171,43 +171,42 @@ export function createSplatTextureDrawerProgram(gpgpu: tfc.webgl.GPGPUContext):
 }
 
 export function executeSplatTextureDrawerProgram(
-    gpgpu: tfc.webgl.GPGPUContext, program: WebGLProgram,
-    splatTex: WebGLTexture, colorScaleTex: WebGLTexture,
-    drawnEmbeddingTex: WebGLTexture, normalization: number,
-    textureDiameter: number, targetTex?: WebGLTexture) {
+    gpgpu: tf.webgl.GPGPUContext, program: WebGLProgram, splatTex: WebGLTexture,
+    colorScaleTex: WebGLTexture, drawnEmbeddingTex: WebGLTexture,
+    normalization: number, textureDiameter: number, targetTex?: WebGLTexture) {
   const gl = gpgpu.gl;
   if (targetTex != null) {
     gpgpu.setOutputMatrixTexture(targetTex, textureDiameter, textureDiameter);
   } else {
-    tfc.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
+    tf.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
   }
 
   gpgpu.setProgram(program);
 
-  const splatLocation = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const splatLocation = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'splat_tex');
   gpgpu.setInputMatrixTexture(splatTex, splatLocation, 0);
 
   const colorScaleLocation =
-      tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
           gl, program, 'color_scale_tex');
   gpgpu.setInputMatrixTexture(colorScaleTex, colorScaleLocation, 1);
 
   const drawnEmbeddingLoc =
-      tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
           gl, program, 'drawn_embedding_tex');
   gpgpu.setInputMatrixTexture(drawnEmbeddingTex, drawnEmbeddingLoc, 2);
 
-  const widthLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const widthLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'width');
 
   gl.uniform1f(widthLoc, textureDiameter);
 
-  const heightLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const heightLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'height');
   gl.uniform1f(heightLoc, textureDiameter);
 
-  const normLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const normLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'normalization');
   gl.uniform1f(normLoc, normalization);
 
@@ -218,7 +217,7 @@ export function executeSplatTextureDrawerProgram(
 ///////////////////////////////////////////////////////////
 
 export function createSimpleEmbeddingDrawerProgram(
-    gpgpu: tfc.webgl.GPGPUContext): WebGLProgram {
+    gpgpu: tf.webgl.GPGPUContext): WebGLProgram {
   const vertexShaderSource = `
     precision highp float;
     attribute float vertex_id;
@@ -267,7 +266,7 @@ export function createSimpleEmbeddingDrawerProgram(
 }
 
 export function executeSimpleEmbeddingDrawerProgram(
-    gpgpu: tfc.webgl.GPGPUContext, program: WebGLProgram,
+    gpgpu: tf.webgl.GPGPUContext, program: WebGLProgram,
     embeddingTex: WebGLTexture, numPoints: number, minX: number, minY: number,
     maxX: number, maxY: number, pntsPerRow: number, numRows: number,
     pointIdBuffer: WebGLBuffer, alpha: number, targetTexDiameter: number,
@@ -278,7 +277,7 @@ export function executeSimpleEmbeddingDrawerProgram(
     gpgpu.setOutputMatrixTexture(
         targetTex, targetTexDiameter, targetTexDiameter);
   } else {
-    tfc.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
+    tf.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
   }
 
   gl.clearColor(1, 1, 1, 1);
@@ -289,25 +288,25 @@ export function executeSimpleEmbeddingDrawerProgram(
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.bindBuffer(gl.ARRAY_BUFFER, pointIdBuffer));
-  tfc.webgl.webgl_util.bindVertexBufferToProgramAttribute(
+  tf.webgl.webgl_util.bindVertexBufferToProgramAttribute(
       gl, program, 'vertex_id', pointIdBuffer, 1, 0, 0);
 
   const embeddingLocation =
-      tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
           gl, program, 'embedding_tex');
   gpgpu.setInputMatrixTexture(embeddingTex, embeddingLocation, 0);
 
-  const pntsPerRowLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const pntsPerRowLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'pnts_per_row');
   gl.uniform1f(pntsPerRowLoc, pntsPerRow);
 
-  const numRowsLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const numRowsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'num_rows');
   gl.uniform1f(numRowsLoc, numRows);
 
-  const alphaLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const alphaLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'alpha');
   gl.uniform1f(alphaLoc, alpha);
 
@@ -320,15 +319,15 @@ export function executeSimpleEmbeddingDrawerProgram(
     minX = (maxX + minX) / 2 - (maxY - minY) / 2;
   }
 
-  const minLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'minV');
+  const minLoc =
+      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(gl, program, 'minV');
   gl.uniform2f(minLoc, minX, minY);
 
-  const maxLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'maxV');
+  const maxLoc =
+      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(gl, program, 'maxV');
   gl.uniform2f(maxLoc, maxX, maxY);
 
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.drawArrays(gl.POINTS, 0, numPoints));
 
   gl.disable(gl.BLEND);
@@ -337,7 +336,7 @@ export function executeSimpleEmbeddingDrawerProgram(
   // TOCHECK if it can be improved
   if (oldProgram != null) {
     gpgpu.setProgram(oldProgram);
-    tfc.webgl.gpgpu_util.bindVertexProgramAttributeStreams(
+    tf.webgl.gpgpu_util.bindVertexProgramAttributeStreams(
         gpgpu.gl, oldProgram, gpgpu.vertexBuffer);
   }
 }
@@ -346,7 +345,7 @@ export function executeSimpleEmbeddingDrawerProgram(
 ///////////////////////////////////////////////////////////
 
 export function createColoredEmbeddingDrawerProgram(
-    gpgpu: tfc.webgl.GPGPUContext): WebGLProgram {
+    gpgpu: tf.webgl.GPGPUContext): WebGLProgram {
   const vertexShaderSource = `
     precision highp float;
     attribute float vertex_id;
@@ -404,7 +403,7 @@ export function createColoredEmbeddingDrawerProgram(
 }
 
 export function executeColoredEmbeddingDrawerProgram(
-    gpgpu: tfc.webgl.GPGPUContext, program: WebGLProgram,
+    gpgpu: tf.webgl.GPGPUContext, program: WebGLProgram,
     embeddingTex: WebGLTexture, numPoints: number, minX: number, minY: number,
     maxX: number, maxY: number, pntsPerRow: number, numRows: number,
     pointIdBuffer: WebGLBuffer, alpha: number, targetTexDiameter: number,
@@ -415,7 +414,7 @@ export function executeColoredEmbeddingDrawerProgram(
     gpgpu.setOutputMatrixTexture(
         targetTex, targetTexDiameter, targetTexDiameter);
   } else {
-    tfc.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
+    tf.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
   }
 
   gl.clearColor(1, 1, 1, 1);
@@ -426,29 +425,29 @@ export function executeColoredEmbeddingDrawerProgram(
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.bindBuffer(gl.ARRAY_BUFFER, pointIdBuffer));
-  tfc.webgl.webgl_util.bindVertexBufferToProgramAttribute(
+  tf.webgl.webgl_util.bindVertexBufferToProgramAttribute(
       gl, program, 'vertex_id', pointIdBuffer, 1, 0, 0);
 
   const embeddingLocation =
-      tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
           gl, program, 'embedding_tex');
   gpgpu.setInputMatrixTexture(embeddingTex, embeddingLocation, 0);
 
-  const colorLocation = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const colorLocation = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'color_tex');
   gpgpu.setInputMatrixTexture(colorsTex, colorLocation, 1);
 
-  const pntsPerRowLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const pntsPerRowLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'pnts_per_row');
   gl.uniform1f(pntsPerRowLoc, pntsPerRow);
 
-  const numRowsLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const numRowsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'num_rows');
   gl.uniform1f(numRowsLoc, numRows);
 
-  const alphaLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const alphaLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'alpha');
   gl.uniform1f(alphaLoc, alpha);
 
@@ -461,15 +460,15 @@ export function executeColoredEmbeddingDrawerProgram(
     minX = (maxX + minX) / 2 - (maxY - minY) / 2;
   }
 
-  const minLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'minV');
+  const minLoc =
+      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(gl, program, 'minV');
   gl.uniform2f(minLoc, minX, minY);
 
-  const maxLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'maxV');
+  const maxLoc =
+      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(gl, program, 'maxV');
   gl.uniform2f(maxLoc, maxX, maxY);
 
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.drawArrays(gl.POINTS, 0, numPoints));
 
   gl.disable(gl.BLEND);
@@ -478,7 +477,7 @@ export function executeColoredEmbeddingDrawerProgram(
   // TOCHECK if it can be improved
   if (oldProgram != null) {
     gpgpu.setProgram(oldProgram);
-    tfc.webgl.gpgpu_util.bindVertexProgramAttributeStreams(
+    tf.webgl.gpgpu_util.bindVertexProgramAttributeStreams(
         gpgpu.gl, oldProgram, gpgpu.vertexBuffer);
   }
 }
@@ -486,8 +485,8 @@ export function executeColoredEmbeddingDrawerProgram(
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 
-export function createTexturedPointsDrawerProgram(
-    gpgpu: tfc.webgl.GPGPUContext): WebGLProgram {
+export function createTexturedPointsDrawerProgram(gpgpu: tf.webgl.GPGPUContext):
+    WebGLProgram {
   const vertexShaderSource = `#version 300 es
     precision highp float;
     in float vertex_id;
@@ -585,7 +584,7 @@ export function createTexturedPointsDrawerProgram(
 }
 
 export function executeTexturedPointsDrawerProgram(
-    gpgpu: tfc.webgl.GPGPUContext, program: WebGLProgram,
+    gpgpu: tf.webgl.GPGPUContext, program: WebGLProgram,
     embeddingTex: WebGLTexture, numPoints: number, minX: number, minY: number,
     maxX: number, maxY: number, pntsPerRow: number, numRows: number,
     pointIdBuffer: WebGLBuffer, alpha: number, targetTexDiameter: number,
@@ -597,7 +596,7 @@ export function executeTexturedPointsDrawerProgram(
     gpgpu.setOutputMatrixTexture(
         targetTex, targetTexDiameter, targetTexDiameter);
   } else {
-    tfc.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
+    tf.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
   }
 
   // TODO provide external color
@@ -609,38 +608,38 @@ export function executeTexturedPointsDrawerProgram(
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.bindBuffer(gl.ARRAY_BUFFER, pointIdBuffer));
-  tfc.webgl.webgl_util.bindVertexBufferToProgramAttribute(
+  tf.webgl.webgl_util.bindVertexBufferToProgramAttribute(
       gl, program, 'vertex_id', pointIdBuffer, 1, 0, 0);
 
   const embeddingLocation =
-      tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
           gl, program, 'embedding_tex');
   gpgpu.setInputMatrixTexture(embeddingTex, embeddingLocation, 0);
 
-  const pointsTexLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const pointsTexLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'point_tex');
   gpgpu.setInputMatrixTexture(pointsTex, pointsTexLoc, 1);
 
-  const colorsTexLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const colorsTexLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'color_tex');
   gpgpu.setInputMatrixTexture(colorsTex, colorsTexLoc, 2);
 
-  const pntsPerRowLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const pntsPerRowLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'pnts_per_row');
   gl.uniform1f(pntsPerRowLoc, pntsPerRow);
 
-  const numRowsLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const numRowsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'num_rows');
   gl.uniform1f(numRowsLoc, numRows);
 
   const pointTextureDiameterLoc =
-      tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
           gl, program, 'point_texture_diameter');
   gl.uniform1f(pointTextureDiameterLoc, pointTextureDiameter);
 
-  const alphaLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
+  const alphaLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'alpha');
   gl.uniform1f(alphaLoc, alpha);
 
@@ -653,15 +652,15 @@ export function executeTexturedPointsDrawerProgram(
     minX = (maxX + minX) / 2 - (maxY - minY) / 2;
   }
 
-  const minLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'minV');
+  const minLoc =
+      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(gl, program, 'minV');
   gl.uniform2f(minLoc, minX, minY);
 
-  const maxLoc = tfc.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'maxV');
+  const maxLoc =
+      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(gl, program, 'maxV');
   gl.uniform2f(maxLoc, maxX, maxY);
 
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.drawArrays(gl.POINTS, 0, numPoints));
 
   gl.disable(gl.BLEND);
@@ -670,7 +669,7 @@ export function executeTexturedPointsDrawerProgram(
   // TOCHECK if it can be improved
   if (oldProgram != null) {
     gpgpu.setProgram(oldProgram);
-    tfc.webgl.gpgpu_util.bindVertexProgramAttributeStreams(
+    tf.webgl.gpgpu_util.bindVertexProgramAttributeStreams(
         gpgpu.gl, oldProgram, gpgpu.vertexBuffer);
   }
 }

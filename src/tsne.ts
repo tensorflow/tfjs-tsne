@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs-core';
 
 import {RearrangedData} from './interfaces';
 import {KNNEstimator} from './knn';
@@ -33,12 +33,12 @@ export interface TSNEConfiguration {
   // Default: auto
 }
 
-export function tsne(data: tfc.Tensor, config?: TSNEConfiguration) {
+export function tsne(data: tf.Tensor, config?: TSNEConfiguration) {
   return new TSNE(data, config);
 }
 
 export class TSNE {
-  private data: tfc.Tensor;
+  private data: tf.Tensor;
   private numPoints: number;
   private numDimensions: number;
   private numNeighbors: number;
@@ -51,7 +51,7 @@ export class TSNE {
   private probabilitiesInitialized: boolean;
   private knnMode: 'auto'|'bruteForce'|'kNNDescentProgram'|'random';
 
-  constructor(data: tfc.Tensor, config?: TSNEConfiguration) {
+  constructor(data: tf.Tensor, config?: TSNEConfiguration) {
     this.initialized = false;
     this.probabilitiesInitialized = false;
     this.data = data;
@@ -188,7 +188,7 @@ export class TSNE {
     return Math.ceil(this.numPoints / 20);
   }
 
-  coordinates(): tfc.Tensor {
+  coordinates(): tf.Tensor {
     return this.optimizer.embedding2D;
   }
 
