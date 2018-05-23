@@ -135,8 +135,19 @@ export class TSNE {
   }
 
   async compute(iterations: number): Promise<void>{
-    await this.iterateKnn(500); //TODO -> get it from the estimator
+    const knnIter = this.knnIterations();
+    if ( this.verbose ){
+      console.log(`Number of KNN iterations:\t${knnIter}`);
+      console.log('Computing the KNN...');
+    }
+    await this.iterateKnn(knnIter);
+    if ( this.verbose ){
+      console.log('Computing the tSNE embedding...');
+    }
     await this.iterate(iterations);
+    if ( this.verbose ){
+      console.log('Done!');
+    }
   }
 
   async iterateKnn(iterations: number): Promise<boolean>{
@@ -146,9 +157,8 @@ export class TSNE {
     this.probabilitiesInitialized = false;
     for(let iter = 0; iter < iterations; ++iter){
         this.knnEstimator.iterateBruteForce();
-        //this.knnEstimator.iterateKNNDescent();
         if ( (this.knnEstimator.iteration % 100) === 0 && this.verbose === true ){
-          console.log(`Iteration KNN:\t ${this.knnEstimator.iteration}`);
+          console.log(`Iteration KNN:\t${this.knnEstimator.iteration}`);
         }
     }
     return true; //TODO
@@ -160,9 +170,16 @@ export class TSNE {
     for(let iter = 0; iter < iterations; ++iter){
       await this.optimizer.iterate();
       if ( (this.optimizer.iteration % 100) === 0 && this.verbose === true ){
-        console.log(`Iteration Optimization:\t ${this.optimizer.iteration}`);
+        console.log(`Iteration tSNE:\t${this.optimizer.iteration}`);
       }
     }
+  }
+
+  /**
+   * Return the maximum number of KNN iterations to be performed
+   */
+  knnIterations(){
+    return Math.ceil(this.numPoints / 20);
   }
 
   coordinates(): tfc.Tensor {

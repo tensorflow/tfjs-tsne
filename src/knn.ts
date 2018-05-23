@@ -121,6 +121,10 @@ export class KNNEstimator {
     this.initilizeCustomWebGLPrograms(distanceComputationSource);
   }
 
+  get pointsPerIteration(){
+    return 20;
+  }
+
   // Utility function for printing stuff
   // tslint:disable-next-line:no-any
   private log(str: string, obj?: any) {
