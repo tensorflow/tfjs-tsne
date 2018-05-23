@@ -22,8 +22,8 @@ import * as d3 from 'd3';
 computeEmbedding();
 
 async function computeEmbedding(){
-  let numDimensions = 10;
-  let numPoints = 10000;
+  let numDimensions = 100;
+  let numPoints = 20000;
 
   //const data = tfc.randomUniform([numPoints, numDimensions]);
   // const data = tfc.tidy(() => {
@@ -37,11 +37,10 @@ async function computeEmbedding(){
 
   data.print();
 
-  const tsne = tf_tsne.tsne(data,{perplexity:30},true);
+  const tsne = tf_tsne.tsne(data,{perplexity:30, verbose: true});
   await tsne.compute(1000);
   const coordinates = tsne.coordinates();
   const dataCoordinates = await coordinates.data();
-  console.log(dataCoordinates);
 
   var data = [];
   for(let p = 0; p < numPoints; ++p){

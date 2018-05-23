@@ -399,8 +399,8 @@ export class TSNEOptimizer {
     const knnIndicesData = await knnIndices.data();
     this.log('knn Indices', knnIndices);
 
-console.log(knnIndicesData);
-console.log(gaussianDistributionsData);
+// console.log(knnIndicesData);
+// console.log(gaussianDistributionsData);
 
     // Neighborhood indices
     const asymNeighIds =

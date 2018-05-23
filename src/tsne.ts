@@ -27,7 +27,9 @@ export interface TSNEConfiguration{
   exaggerationIter?:number;       //Default: 300
   exaggerationDecayIter?: number; //Default: 200
   momentum?: number;              //Default: 0.8
-  verbose?: boolean;
+  verbose?: boolean;              //Default: false
+  knnMode: 'auto' | 'bruteForce' | 'kNNDescentProgram' | 'random';
+                                                              //Default: auto
 }
 
 export function tsne(data: tfc.Tensor, config?: TSNEConfiguration){
@@ -47,6 +49,7 @@ export class TSNE {
   private config: TSNEConfiguration;
   private initialized: boolean;
   private probabilitiesInitialized: boolean;
+  private knnMode: 'auto' | 'bruteForce' | 'kNNDescentProgram' | 'random';
 
   constructor(data: tfc.Tensor, config?: TSNEConfiguration){
     this.initialized = false;
@@ -61,14 +64,6 @@ export class TSNE {
     if (inputShape.length !== 2) {
       throw Error('computeTSNE: input tensor must be 2-dimensional');
     }
-
-    this.verbose = false;
-    if (verbose != null) {
-      this.verbose = verbose;
-    }
-    if ( this.verbose === true ){
-      console.log(`Computing tSNE embedding...`);
-    }
   }
 
   private async initialize(): Promise<void>{
@@ -79,6 +74,7 @@ export class TSNE {
     let exaggerationDecayIter = 200;
     let momentum = 0.8;
     this.verbose = false;
+    this.knnMode = 'auto';
 
     //Reading user defined configuration
     if (this.config !== undefined) {
@@ -100,6 +96,9 @@ export class TSNE {
       if (this.config.verbose !== undefined) {
         this.verbose = this.config.verbose;
       }
+      if (this.config.knnMode !== undefined) {
+        this.knnMode = this.config.knnMode;
+      }
     }
 
     //Number of neighbors cannot exceed 128
@@ -118,7 +117,7 @@ export class TSNE {
 
     this.knnEstimator
             = new KNNEstimator(this.packedData.texture,this.packedData.shape,
-                  this.numPoints,this.numDimensions,this.numNeighbors,true);
+                  this.numPoints,this.numDimensions,this.numNeighbors,false);
 
     this.optimizer = new TSNEOptimizer(this.numPoints, false);
     const exaggerationPolyline
@@ -136,8 +135,7 @@ export class TSNE {
   }
 
   async compute(iterations: number): Promise<void>{
-    await this.initialize();
-    await this.iterateKnn(250); //TODO -> get it from the estimator
+    await this.iterateKnn(500); //TODO -> get it from the estimator
     await this.iterate(iterations);
   }
 
@@ -147,8 +145,8 @@ export class TSNE {
     }
     this.probabilitiesInitialized = false;
     for(let iter = 0; iter < iterations; ++iter){
-        //this.knnEstimator.iterateBruteForce();
-        this.knnEstimator.iterateKNNDescent();
+        this.knnEstimator.iterateBruteForce();
+        //this.knnEstimator.iterateKNNDescent();
         if ( (this.knnEstimator.iteration % 100) === 0 && this.verbose === true ){
           console.log(`Iteration KNN ${this.knnEstimator.iteration}`);
         }
