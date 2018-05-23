@@ -22,21 +22,16 @@ async function loadData() {
 
 async function doEmbedding(data, labels, numIterations, onIteration) {
   console.log('do Embedding', data, numIterations);
-  const tsne = tf_tsne.tsne(data, {
-    perplexity: 0.3,
-    knnMethod: "BRUTE_FORCE",
-    verbose: true,
-  });
-
+  const tsne = tf_tsne.tsne(data, undefined, true);
   console.time("IterateKNN");
-  await tsne.iterateKnn(1); // i want to not have to give this a number
+  await tsne.iterateKnn(1000); // i want to not have to give this a number
   console.timeEnd("IterateKNN");
 
   for(let i = 0; i < numIterations; i++) {
     console.log("--doing iteration-- " + i);
     console.time('Iterate');
-    await tsne.iterate(1);
-    console.timeEnd('Iterate');
+    await tsne.iterate(5);
+    console.time('Iterate');
     const coordsData = await tsne.coordinates().data();
     onIteration(coordsData, labels);
     await tf.nextFrame();
@@ -96,8 +91,8 @@ async function start() {
   const data = await loadData();
   console.log(data);
 
-  const inputData = data.testImages;
-  const labelsTensor = tf.tensor2d(data.testLabels, [NUM_IMAGES, NUM_CLASSES]);
+  const inputData = data.datasetImages;
+  const labelsTensor = tf.tensor2d(data.datasetLabels, [NUM_IMAGES, NUM_CLASSES]);
   const labels = labelsTensor.argMax(1).dataSync();
 
 
