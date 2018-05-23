@@ -43,9 +43,9 @@ function knnIntegrityTests(
        const knn = new tf_knn.KNNEstimator(
            dataTexture, dataFormat, numPoints, numDimensions, numNeighs, false);
        iterate(knn, knnTechnique);
-       expect(knn.numOfIterations).toBe(1);
+       expect(knn.iteration).toBe(1);
        iterate(knn, knnTechnique);
-       expect(knn.numOfIterations).toBe(2);
+       expect(knn.iteration).toBe(2);
      });
 
   it(`kNN preserves the heap property
@@ -146,7 +146,7 @@ describe('KNN [line]\n', () => {
   it('kNN initializes iterations to 0', () => {
     const knn = new tf_knn.KNNEstimator(
         dataTexture, dataFormat, numPoints, numDimensions, 100, false);
-    expect(knn.numOfIterations).toBe(0);
+    expect(knn.iteration).toBe(0);
   });
 
   knnIntegrityTests(

@@ -19,8 +19,12 @@ import * as tfc from '@tensorflow/tfjs-core';
 import * as gl_util from './gl_util';
 import {RearrangedData} from './interfaces';
 
-//converts a 2D tensor in a texture that is optimized format the kNN computation
-//Switch to a GPU implmentation
+/*******
+ * Converts a 2D tensor in a texture that is in the optimized format
+ * for the kNN computation
+ * @param {tfc.Tensor} Tensor to convert
+ * @return {Promise} Promise of an Obeject containing the texture and shape
+ */
 export async function tensorToDataTexture(tensor: tfc.Tensor):
           Promise<{shape: RearrangedData, texture: WebGLTexture}>
 {
@@ -47,6 +51,7 @@ export async function tensorToDataTexture(tensor: tfc.Tensor):
 
   const tensorData = tensor.dataSync();
 
+  //TODO Switch to a GPU implmentation to improve performance
   //Reading tensor values
   const textureValues =
       new Float32Array(pointsPerRow * pixelsPerPoint * numRows * numChannels);
@@ -59,15 +64,9 @@ export async function tensorToDataTexture(tensor: tfc.Tensor):
     }
   }
 
-  //TODO clean
-  console.log(tensorData);
-  console.log(textureValues);
-
   const texture = gl_util.createAndConfigureTexture(
       gpgpu.gl, pointsPerRow * pixelsPerPoint, numRows, 4, textureValues);
   const shape = {numPoints, pointsPerRow, numRows, pixelsPerPoint};
-  //TODO clean
-  console.log(shape);
 
   return {shape,texture};
 }

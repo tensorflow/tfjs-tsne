@@ -23,17 +23,21 @@ computeEmbedding();
 
 async function computeEmbedding(){
   let numDimensions = 10;
-  let numPoints = 20000;
+  let numPoints = 10000;
 
   //const data = tfc.randomUniform([numPoints, numDimensions]);
+  // const data = tfc.tidy(() => {
+  //                         return tfc.linspace(0,100,numPoints*numDimensions)
+  //                                   .reshape([numPoints, numDimensions]);
   const data = tfc.tidy(() => {
-                          return tfc.linspace(0,100,numPoints*numDimensions)
-                                    .reshape([numPoints, numDimensions]);
+                          return tfc.linspace(0,1,numPoints*numDimensions)
+                                    .reshape([numPoints, numDimensions])
+                                    .add(tfc.randomUniform([numPoints, numDimensions]));
   });
 
   data.print();
 
-  const tsne = tf_tsne.tsne(data,undefined,true);
+  const tsne = tf_tsne.tsne(data,{perplexity:30},true);
   await tsne.compute(1000);
   const coordinates = tsne.coordinates();
   const dataCoordinates = await coordinates.data();

@@ -27,11 +27,11 @@ export interface TSNEConfiguration{
   exaggerationIter?:number;       //Default: 300
   exaggerationDecayIter?: number; //Default: 200
   momentum?: number;              //Default: 0.8
+  verbose?: boolean;
 }
 
-export function tsne(data: tfc.Tensor, config?: TSNEConfiguration,
-                            verbose?: boolean){
-  return new TSNE(data, config, verbose);
+export function tsne(data: tfc.Tensor, config?: TSNEConfiguration){
+  return new TSNE(data, config);
 }
 
 export class TSNE {
@@ -48,7 +48,7 @@ export class TSNE {
   private initialized: boolean;
   private probabilitiesInitialized: boolean;
 
-  constructor(data: tfc.Tensor, config?: TSNEConfiguration, verbose?: boolean){
+  constructor(data: tfc.Tensor, config?: TSNEConfiguration){
     this.initialized = false;
     this.probabilitiesInitialized = false;
     this.data = data;
@@ -78,6 +78,7 @@ export class TSNE {
     let exaggerationIter = 300;
     let exaggerationDecayIter = 200;
     let momentum = 0.8;
+    this.verbose = false;
 
     //Reading user defined configuration
     if (this.config !== undefined) {
@@ -95,6 +96,9 @@ export class TSNE {
       }
       if (this.config.momentum !== undefined) {
         momentum = this.config.momentum;
+      }
+      if (this.config.verbose !== undefined) {
+        this.verbose = this.config.verbose;
       }
     }
 
@@ -133,7 +137,7 @@ export class TSNE {
 
   async compute(iterations: number): Promise<void>{
     await this.initialize();
-    await this.iterateKnn(100); //TODO -> get it from the estimator
+    await this.iterateKnn(250); //TODO -> get it from the estimator
     await this.iterate(iterations);
   }
 
@@ -143,7 +147,11 @@ export class TSNE {
     }
     this.probabilitiesInitialized = false;
     for(let iter = 0; iter < iterations; ++iter){
-        this.knnEstimator.iterateBruteForce();
+        //this.knnEstimator.iterateBruteForce();
+        this.knnEstimator.iterateKNNDescent();
+        if ( (this.knnEstimator.iteration % 100) === 0 && this.verbose === true ){
+          console.log(`Iteration KNN ${this.knnEstimator.iteration}`);
+        }
     }
     return true; //TODO
   }
