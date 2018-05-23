@@ -49,7 +49,7 @@ export class TSNE {
   private config: TSNEConfiguration;
   private initialized: boolean;
   private probabilitiesInitialized: boolean;
-  private knnMode: 'auto' | 'bruteForce' | 'kNNDescentProgram' | 'random';
+  // private knnMode: 'auto' | 'bruteForce' | 'kNNDescentProgram' | 'random';
 
   constructor(data: tfc.Tensor, config?: TSNEConfiguration){
     this.initialized = false;
@@ -155,11 +155,11 @@ export class TSNE {
       await this.initialize();
     }
     this.probabilitiesInitialized = false;
-    for(let iter = 0; iter < iterations; ++iter){
-        this.knnEstimator.iterateBruteForce();
-        if ( (this.knnEstimator.iteration % 100) === 0 && this.verbose === true ){
-          console.log(`Iteration KNN:\t${this.knnEstimator.iteration}`);
-        }
+    for (let iter = 0; iter < iterations; ++iter) {
+      this.knnEstimator.iterateBruteForce();
+      if ((this.knnEstimator.iteration % 100) === 0 && this.verbose === true) {
+        console.log(`Iteration KNN:\t${this.knnEstimator.iteration}`);
+      }
     }
     return true; //TODO
   }
