@@ -18,9 +18,9 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import * as gl_util from './gl_util';
+import {RearrangedData} from './interfaces';
 import * as knn_util from './knn_util';
 import * as tsne_util from './tsne_optimizer_util';
-import {RearrangedData} from './interfaces';
 
 export class TSNEOptimizer {
   // Interactive parameters
@@ -198,7 +198,7 @@ export class TSNEOptimizer {
     this.numPoints = numPoints;
     this._iteration = 0;
 
-    //WebGL version 2 is required
+    // WebGL version 2 is required
     const webglVersion = tfc.ENV.get('WEBGL_VERSION');
     if (webglVersion === 1) {
       throw Error('WebGL version 1 is not supported by tfjs-tsne');
@@ -399,8 +399,8 @@ export class TSNEOptimizer {
     const knnIndicesData = await knnIndices.data();
     this.log('knn Indices', knnIndices);
 
-// console.log(knnIndicesData);
-// console.log(gaussianDistributionsData);
+    // console.log(knnIndicesData);
+    // console.log(gaussianDistributionsData);
 
     // Neighborhood indices
     const asymNeighIds =
@@ -552,7 +552,7 @@ export class TSNEOptimizer {
   }
 
   // Texture tSNE
-  async iterate(): Promise<void>{
+  async iterate(): Promise<void> {
     if (!this.initializedNeighborhoods()) {
       throw new Error('No neighborhoods defined. You may want to call\
                     initializeNeighbors or initializeNeighborsFromKNNGraph');
@@ -563,7 +563,7 @@ export class TSNEOptimizer {
     this.updateExaggeration();
 
     let normQ: tfc.Tensor;
-    [this.gradient,normQ] = tfc.tidy(() => {
+    [this.gradient, normQ] = tfc.tidy(() => {
       // computing the gradient
       // 1) splat the points
       this.splatPoints();
@@ -590,7 +590,7 @@ export class TSNEOptimizer {
       const gradient = this.gradient.mul(this._momentum).sub(gradientIter);
 
       this.gradient.dispose();
-      return [gradient,normQ];
+      return [gradient, normQ];
     });
 
     this._normQ = (await normQ.data())[0];
@@ -717,7 +717,6 @@ export class TSNEOptimizer {
   // Compute the boundaries of the embedding for defining the splat area
   // and the visualization boundaries
   private async computeBoundaries(): Promise<void> {
-
     const [min, max] = tfc.tidy(() => {
       // 2d tensor with some extra points
       const embedding2D =
@@ -726,10 +725,10 @@ export class TSNEOptimizer {
 
       const min = embedding2D.min(0);
       const max = embedding2D.max(0);
-      return [min,max];
+      return [min, max];
     });
 
-    //TODO clean up the code
+    // TODO clean up the code
     this._minX = (await min.data())[0];
     this._maxX = (await max.data())[0];
     const offsetX = (this._maxX - this._minX) * 0.05;

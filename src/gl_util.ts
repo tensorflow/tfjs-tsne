@@ -148,7 +148,6 @@ export function createAndConfigureUByteTexture(
 // EXACT COPY DLJS
 function getTextureInternalFormat(
     gl: WebGLRenderingContext, numChannels: number): number {
-
   if (numChannels === 4) {
     // tslint:disable-next-line:no-any
     return (gl as any).RGBA32F;
@@ -165,7 +164,6 @@ function getTextureInternalFormat(
 
 function getTextureInternalUByteFormat(
     gl: WebGLRenderingContext, numChannels: number): number {
-
   if (numChannels === 4) {
     // tslint:disable-next-line:no-any
     return (gl as any).RGBA8;
@@ -182,7 +180,6 @@ function getTextureInternalUByteFormat(
 
 function getTextureFormat(
     gl: WebGLRenderingContext, numChannels: number): number {
-
   if (numChannels === 4) {
     // tslint:disable-next-line:no-any
     return (gl as any).RGBA;

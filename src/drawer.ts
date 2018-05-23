@@ -115,7 +115,7 @@ export class EmbeddingDrawer {
     this.texturedPointsDrawerProgram =
         drawer_util.createTexturedPointsDrawerProgram(this.gpgpu);
 
-    //Red to blue color scale (obtained from colorbrewer)
+    // Red to blue color scale (obtained from colorbrewer)
     const colors = new Float32Array([
       178, 24,  43,  214, 96,  77,  244, 165, 130, 253, 219, 199, 255, 255,
       255, 209, 229, 240, 146, 197, 222, 67,  147, 195, 33,  102, 172

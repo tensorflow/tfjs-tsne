@@ -19,8 +19,8 @@ import * as tfc from '@tensorflow/tfjs-core';
 
 import * as dataset_util from './dataset_util';
 import * as gl_util from './gl_util';
-import * as knn_util from './knn_util';
 import {RearrangedData} from './interfaces';
+import * as knn_util from './knn_util';
 
 // tslint:disable-next-line:no-any
 function instanceOfRearrangedData(object: any): object is RearrangedData {
@@ -121,7 +121,7 @@ export class KNNEstimator {
     this.initilizeCustomWebGLPrograms(distanceComputationSource);
   }
 
-  get pointsPerIteration(){
+  get pointsPerIteration() {
     return 20;
   }
 
@@ -184,10 +184,12 @@ export class KNNEstimator {
   iterateBruteForce() {
     if ((this._iteration % 2) === 0) {
       this.iterateGPU(
-          this.dataTexture, this._iteration, this.knnTexture0, this.knnTexture1);
+          this.dataTexture, this._iteration, this.knnTexture0,
+          this.knnTexture1);
     } else {
       this.iterateGPU(
-          this.dataTexture, this._iteration, this.knnTexture1, this.knnTexture0);
+          this.dataTexture, this._iteration, this.knnTexture1,
+          this.knnTexture0);
     }
     ++this._iteration;
     this.gpgpu.gl.finish();
@@ -195,10 +197,12 @@ export class KNNEstimator {
   iterateRandomSampling() {
     if ((this._iteration % 2) === 0) {
       this.iterateRandomSamplingGPU(
-          this.dataTexture, this._iteration, this.knnTexture0, this.knnTexture1);
+          this.dataTexture, this._iteration, this.knnTexture0,
+          this.knnTexture1);
     } else {
       this.iterateRandomSamplingGPU(
-          this.dataTexture, this._iteration, this.knnTexture1, this.knnTexture0);
+          this.dataTexture, this._iteration, this.knnTexture1,
+          this.knnTexture0);
     }
     ++this._iteration;
     this.gpgpu.gl.finish();
@@ -206,10 +210,12 @@ export class KNNEstimator {
   iterateKNNDescent() {
     if ((this._iteration % 2) === 0) {
       this.iterateKNNDescentGPU(
-          this.dataTexture, this._iteration, this.knnTexture0, this.knnTexture1);
+          this.dataTexture, this._iteration, this.knnTexture0,
+          this.knnTexture1);
     } else {
       this.iterateKNNDescentGPU(
-          this.dataTexture, this._iteration, this.knnTexture1, this.knnTexture0);
+          this.dataTexture, this._iteration, this.knnTexture1,
+          this.knnTexture0);
     }
     ++this._iteration;
     this.gpgpu.gl.finish();
@@ -273,5 +279,4 @@ export class KNNEstimator {
         this.gpgpu, this.kNNDescentProgram, dataTexture, startingKNNTexture,
         _iteration, this.knnDataShape, this.linesVertexIdBuffer, targetTexture);
   }
-
 }
