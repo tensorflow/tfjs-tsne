@@ -33,9 +33,9 @@ async function start() {
 
 /*
  * Generate some synthetic data to demonstrate the T-SNE implementation.
- * 
- * The data is drawn from a random uniform distribution and must be a rank
- * 2 tensor.
+ *
+ * The data is drawn from a straight line in the high dimensional space to which
+ * random noise is added. The data must be a rank 2 tensor.
  */
 function generateData(numDimensions, numPoints) {
   const data = tfc.tidy(() => {
@@ -49,7 +49,9 @@ function generateData(numDimensions, numPoints) {
 /*
  * Computes our embedding.
  * 
- * This runs the T-SNE algoithm over our data tensor.
+ * This runs the T-SNE algorithm over our data tensor 
+ * and returns x,y coordinates in embedding space.
+ * 
  */
 async function computeEmbedding(data, numPoints) {
   const tsne = tf_tsne.tsne(data, { 
