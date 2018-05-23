@@ -43,7 +43,7 @@ export class KNNEstimator {
   private backend: tfc.webgl.MathBackendWebGL;
   private gpgpu: tfc.webgl.GPGPUContext;
 
-  private iteration: number;
+  private _iteration: number;
   private numNeighs: number;
 
   private bruteForceKNNProgram: WebGLProgram;
@@ -63,8 +63,8 @@ export class KNNEstimator {
   get knnShape(): RearrangedData {
     return this.knnDataShape;
   }
-  get numOfIterations() {
-    return this.iteration;
+  get iteration() {
+    return this._iteration;
   }
 
   constructor(
@@ -80,7 +80,7 @@ export class KNNEstimator {
     this.backend = tfc.ENV.findBackend('webgl') as tfc.webgl.MathBackendWebGL;
     this.gpgpu = this.backend.getGPGPUContext();
 
-    this.iteration = 0;
+    this._iteration = 0;
     this.dataTexture = dataTexture;
 
     if (numNeighs > 128) {
@@ -118,8 +118,11 @@ export class KNNEstimator {
 
     // Initialize the WebGL custom programs
     this.initializeTextures();
-    // this.initializeRandomSeeds();
     this.initilizeCustomWebGLPrograms(distanceComputationSource);
+  }
+
+  get pointsPerIteration(){
+    return 20;
   }
 
   // Utility function for printing stuff
@@ -179,41 +182,41 @@ export class KNNEstimator {
   }
 
   iterateBruteForce() {
-    if ((this.iteration % 2) === 0) {
+    if ((this._iteration % 2) === 0) {
       this.iterateGPU(
-          this.dataTexture, this.iteration, this.knnTexture0, this.knnTexture1);
+          this.dataTexture, this._iteration, this.knnTexture0, this.knnTexture1);
     } else {
       this.iterateGPU(
-          this.dataTexture, this.iteration, this.knnTexture1, this.knnTexture0);
+          this.dataTexture, this._iteration, this.knnTexture1, this.knnTexture0);
     }
-    ++this.iteration;
+    ++this._iteration;
     this.gpgpu.gl.finish();
   }
   iterateRandomSampling() {
-    if ((this.iteration % 2) === 0) {
+    if ((this._iteration % 2) === 0) {
       this.iterateRandomSamplingGPU(
-          this.dataTexture, this.iteration, this.knnTexture0, this.knnTexture1);
+          this.dataTexture, this._iteration, this.knnTexture0, this.knnTexture1);
     } else {
       this.iterateRandomSamplingGPU(
-          this.dataTexture, this.iteration, this.knnTexture1, this.knnTexture0);
+          this.dataTexture, this._iteration, this.knnTexture1, this.knnTexture0);
     }
-    ++this.iteration;
+    ++this._iteration;
     this.gpgpu.gl.finish();
   }
   iterateKNNDescent() {
-    if ((this.iteration % 2) === 0) {
+    if ((this._iteration % 2) === 0) {
       this.iterateKNNDescentGPU(
-          this.dataTexture, this.iteration, this.knnTexture0, this.knnTexture1);
+          this.dataTexture, this._iteration, this.knnTexture0, this.knnTexture1);
     } else {
       this.iterateKNNDescentGPU(
-          this.dataTexture, this.iteration, this.knnTexture1, this.knnTexture0);
+          this.dataTexture, this._iteration, this.knnTexture1, this.knnTexture0);
     }
-    ++this.iteration;
+    ++this._iteration;
     this.gpgpu.gl.finish();
   }
 
   knn(): WebGLTexture {
-    if ((this.iteration % 2) === 0) {
+    if ((this._iteration % 2) === 0) {
       return this.knnTexture0;
     } else {
       return this.knnTexture1;
@@ -249,26 +252,26 @@ export class KNNEstimator {
   }
 
   private iterateGPU(
-      dataTexture: WebGLTexture, iteration: number,
+      dataTexture: WebGLTexture, _iteration: number,
       startingKNNTexture: WebGLTexture, targetTexture?: WebGLTexture) {
     knn_util.executeKNNProgram(
         this.gpgpu, this.bruteForceKNNProgram, dataTexture, startingKNNTexture,
-        iteration, this.knnDataShape, this.linesVertexIdBuffer, targetTexture);
+        _iteration, this.knnDataShape, this.linesVertexIdBuffer, targetTexture);
   }
   private iterateRandomSamplingGPU(
-      dataTexture: WebGLTexture, iteration: number,
+      dataTexture: WebGLTexture, _iteration: number,
       startingKNNTexture: WebGLTexture, targetTexture?: WebGLTexture) {
     knn_util.executeKNNProgram(
         this.gpgpu, this.randomSamplingKNNProgram, dataTexture,
-        startingKNNTexture, iteration, this.knnDataShape,
+        startingKNNTexture, _iteration, this.knnDataShape,
         this.linesVertexIdBuffer, targetTexture);
   }
   private iterateKNNDescentGPU(
-      dataTexture: WebGLTexture, iteration: number,
+      dataTexture: WebGLTexture, _iteration: number,
       startingKNNTexture: WebGLTexture, targetTexture?: WebGLTexture) {
     knn_util.executeKNNProgram(
         this.gpgpu, this.kNNDescentProgram, dataTexture, startingKNNTexture,
-        iteration, this.knnDataShape, this.linesVertexIdBuffer, targetTexture);
+        _iteration, this.knnDataShape, this.linesVertexIdBuffer, targetTexture);
   }
 
 }

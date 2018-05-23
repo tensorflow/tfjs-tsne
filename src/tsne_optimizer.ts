@@ -217,7 +217,6 @@ export class TSNEOptimizer {
     // The points are organized as xyxyxy... with a pixel per dimension
     // The resulting texture are almost squared to avoid precision problems
     // In the shaders
-    // TODO check
     this.pointsPerRow = Math.ceil(Math.sqrt(numPoints * 2));
     if (this.pointsPerRow % 2 === 1) {
       ++this.pointsPerRow;
@@ -399,6 +398,9 @@ export class TSNEOptimizer {
         this.backend.getTexture(knnIndices.dataId));
     const knnIndicesData = await knnIndices.data();
     this.log('knn Indices', knnIndices);
+
+// console.log(knnIndicesData);
+// console.log(gaussianDistributionsData);
 
     // Neighborhood indices
     const asymNeighIds =

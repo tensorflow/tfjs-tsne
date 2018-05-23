@@ -274,8 +274,8 @@ export function createBruteForceKNNProgram(
       knnHeapSource + `
     void main() {
       //Getting the id of the point and the line id (0/1)
-      point_id = int((vertex_id/2.0)+0.1);
-      int line_id = int(mod(vertex_id+0.1,2.));
+      point_id = int((vertex_id / 2.0) + 0.1);
+      int line_id = int(mod(vertex_id + 0.1, 2.));
       if(float(point_id) >= num_points) {
         return;
       }
@@ -287,8 +287,14 @@ export function createBruteForceKNNProgram(
       initializeDistances(point_id);
       for(int i = 0; i < NEIGH_PER_ITER; i += 4) {
         //TODO make it more readable
-        int j = int(mod(float(point_id+i)+
-                    iteration*float(NEIGH_PER_ITER)+1.,num_points));
+
+        int j = int(mod(
+                    float(point_id + i) //point id + current offset
+                    + iteration * float(NEIGH_PER_ITER) //iteration offset
+                    + 1.25,// +1 for avoid checking the point itself,
+                           // +0.25 for error compensation
+                    num_points
+                  ));
         vec4 dist_squared = pointDistanceSquaredBatch(point_id,j,j+1,j+2,j+3);
         insertInKNN(dist_squared.r, j);
         insertInKNN(dist_squared.g, j+1);
