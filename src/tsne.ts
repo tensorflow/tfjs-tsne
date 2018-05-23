@@ -148,7 +148,7 @@ export class TSNE {
         this.knnEstimator.iterateBruteForce();
         //this.knnEstimator.iterateKNNDescent();
         if ( (this.knnEstimator.iteration % 100) === 0 && this.verbose === true ){
-          console.log(`Iteration KNN ${this.knnEstimator.iteration}`);
+          console.log(`Iteration KNN:\t ${this.knnEstimator.iteration}`);
         }
     }
     return true; //TODO
@@ -160,7 +160,7 @@ export class TSNE {
     for(let iter = 0; iter < iterations; ++iter){
       await this.optimizer.iterate();
       if ( (this.optimizer.iteration % 100) === 0 && this.verbose === true ){
-        console.log(`Iteration ${this.optimizer.iteration}`);
+        console.log(`Iteration Optimization:\t ${this.optimizer.iteration}`);
       }
     }
   }
