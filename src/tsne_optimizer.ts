@@ -15,18 +15,18 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs-core';
 
 import * as gl_util from './gl_util';
+import {RearrangedData} from './interfaces';
 import * as knn_util from './knn_util';
 import * as tsne_util from './tsne_optimizer_util';
-import {RearrangedData} from './interfaces';
 
 export class TSNEOptimizer {
   // Interactive parameters
   private _eta: number;  // used as uniform in the shaders
-  private _momentum: tfc.Scalar;
-  private _exaggeration: tfc.Scalar;
+  private _momentum: tf.Scalar;
+  private _exaggeration: tf.Scalar;
 
   private rawExaggeration: number|Array<{iteration: number, value: number}>;
 
@@ -39,10 +39,10 @@ export class TSNEOptimizer {
   private kernelTextureDiameter: number;
   private kernelSupport: number;
 
-  private embedding: tfc.Tensor;
-  private gradient: tfc.Tensor;
-  private backend: tfc.webgl.MathBackendWebGL;
-  private gpgpu: tfc.webgl.GPGPUContext;
+  private embedding: tf.Tensor;
+  private gradient: tf.Tensor;
+  private backend: tf.webgl.MathBackendWebGL;
+  private gpgpu: tf.webgl.GPGPUContext;
 
   private embeddingInitializationProgram: WebGLProgram;
   private embeddingSplatterProgram: WebGLProgram;
@@ -101,8 +101,8 @@ export class TSNEOptimizer {
     return this.embedding;
   }
 
-  get embedding2D(): tfc.Tensor {
-    const result = tfc.tidy(() => {
+  get embedding2D(): tf.Tensor {
+    const result = tf.tidy(() => {
       // 2d tensor with some extra points
       const reshaped =
           this.embedding.reshape([this.numRows * this.pointsPerRow, 2])
@@ -169,7 +169,7 @@ export class TSNEOptimizer {
       throw Error('Momentum must be in the [0,1] range');
     }
     this._momentum.dispose();
-    this._momentum = tfc.scalar(mom);
+    this._momentum = tf.scalar(mom);
   }
   get eta(): number {
     return this._eta;
@@ -198,20 +198,20 @@ export class TSNEOptimizer {
     this.numPoints = numPoints;
     this._iteration = 0;
 
-    //WebGL version 2 is required
-    const webglVersion = tfc.ENV.get('WEBGL_VERSION');
+    // WebGL version 2 is required
+    const webglVersion = tf.ENV.get('WEBGL_VERSION');
     if (webglVersion === 1) {
       throw Error('WebGL version 1 is not supported by tfjs-tsne');
     }
     // Saving the GPGPU context
-    this.backend = tfc.ENV.findBackend('webgl') as tfc.webgl.MathBackendWebGL;
+    this.backend = tf.ENV.findBackend('webgl') as tf.webgl.MathBackendWebGL;
     if (this.backend === null) {
       throw Error('WebGL backend is not available');
     }
     this.gpgpu = this.backend.getGPGPUContext();
 
     // Check for the float interpolation extension
-    tfc.webgl.webgl_util.getExtensionOrThrow(
+    tf.webgl.webgl_util.getExtensionOrThrow(
         this.gpgpu.gl, 'OES_texture_float_linear');
 
     // The points are organized as xyxyxy... with a pixel per dimension
@@ -228,7 +228,7 @@ export class TSNEOptimizer {
 
     // Default values for the gradient descent parameters
     this._eta = 2500;
-    this._momentum = tfc.scalar(0.8);
+    this._momentum = tf.scalar(0.8);
     this.rawExaggeration =
         [{iteration: 200, value: 4}, {iteration: 600, value: 1}];
     this.updateExaggeration();
@@ -299,12 +299,12 @@ export class TSNEOptimizer {
     }
 
     // Previous gradients are set to zero
-    this.gradient = tfc.zeros([this.numRows, this.pointsPerRow * 2]);
+    this.gradient = tf.zeros([this.numRows, this.pointsPerRow * 2]);
 
-    this.embedding = tfc.tidy(() => {
+    this.embedding = tf.tidy(() => {
       const randomData =
-          tfc.randomUniform([this.numRows, this.pointsPerRow * 2]);
-      const embedding = tfc.zeros([this.numRows, this.pointsPerRow * 2]);
+          tf.randomUniform([this.numRows, this.pointsPerRow * 2]);
+      const embedding = tf.zeros([this.numRows, this.pointsPerRow * 2]);
       this.initializeEmbeddingPositions(embedding, randomData);
       return embedding;
     });
@@ -377,7 +377,7 @@ export class TSNEOptimizer {
 
     // contains the per-point probability vectors
     const gaussianDistributions =
-        tfc.zeros([shape.numRows, shape.pointsPerRow * shape.pixelsPerPoint]);
+        tf.zeros([shape.numRows, shape.pointsPerRow * shape.pixelsPerPoint]);
 
     const perplexity = shape.pixelsPerPoint / 3;
     // Computation of the per-point probability vectors
@@ -390,7 +390,7 @@ export class TSNEOptimizer {
 
     // Contains the per-point probability vectors
     const knnIndices =
-        tfc.zeros([shape.numRows, shape.pointsPerRow * shape.pixelsPerPoint]);
+        tf.zeros([shape.numRows, shape.pointsPerRow * shape.pixelsPerPoint]);
     // Computation of the per-point probability vectors
     const copyIndicesProgram = knn_util.createCopyIndicesProgram(this.gpgpu);
     knn_util.executeCopyIndicesProgram(
@@ -399,8 +399,8 @@ export class TSNEOptimizer {
     const knnIndicesData = await knnIndices.data();
     this.log('knn Indices', knnIndices);
 
-// console.log(knnIndicesData);
-// console.log(gaussianDistributionsData);
+    // console.log(knnIndicesData);
+    // console.log(gaussianDistributionsData);
 
     // Neighborhood indices
     const asymNeighIds =
@@ -519,19 +519,19 @@ export class TSNEOptimizer {
     }
     // Exaggeration is a number
     if (typeof this.rawExaggeration === 'number') {
-      this._exaggeration = tfc.scalar(this.rawExaggeration);
+      this._exaggeration = tf.scalar(this.rawExaggeration);
       return;
     }
 
     // Edge cases (before first element)
     if (this._iteration <= this.rawExaggeration[0].iteration) {
-      this._exaggeration = tfc.scalar(this.rawExaggeration[0].value);
+      this._exaggeration = tf.scalar(this.rawExaggeration[0].value);
       return;
     }
     // Edge cases (after last element)
     if (this._iteration >=
         this.rawExaggeration[this.rawExaggeration.length - 1].iteration) {
-      this._exaggeration = tfc.scalar(
+      this._exaggeration = tf.scalar(
           this.rawExaggeration[this.rawExaggeration.length - 1].value);
       return;
     }
@@ -548,11 +548,11 @@ export class TSNEOptimizer {
     const v1 = this.rawExaggeration[i + 1].value;
     const f = (it1 - this._iteration) / (it1 - it0);
     const v = v0 * f + v1 * (1 - f);
-    this._exaggeration = tfc.scalar(v);
+    this._exaggeration = tf.scalar(v);
   }
 
   // Texture tSNE
-  async iterate(): Promise<void>{
+  async iterate(): Promise<void> {
     if (!this.initializedNeighborhoods()) {
       throw new Error('No neighborhoods defined. You may want to call\
                     initializeNeighbors or initializeNeighborsFromKNNGraph');
@@ -562,15 +562,15 @@ export class TSNEOptimizer {
     this.updateSplatTextureDiameter();
     this.updateExaggeration();
 
-    let normQ: tfc.Tensor;
-    [this.gradient,normQ] = tfc.tidy(() => {
+    let normQ: tf.Tensor;
+    [this.gradient, normQ] = tf.tidy(() => {
       // computing the gradient
       // 1) splat the points
       this.splatPoints();
 
       // 2) compute interpolation of the scalar fields
-      const interpQ = tfc.zeros([this.numRows, this.pointsPerRow]);
-      const interpXY = tfc.zeros([this.numRows, this.pointsPerRow * 2]);
+      const interpQ = tf.zeros([this.numRows, this.pointsPerRow]);
+      const interpXY = tf.zeros([this.numRows, this.pointsPerRow * 2]);
       this.computeInterpolatedQ(interpQ);
       this.computeInterpolatedXY(interpXY);
 
@@ -581,7 +581,7 @@ export class TSNEOptimizer {
       const repulsiveForces = interpXY.div(normQ);
 
       // 5) compute the attracive forces
-      const attractiveForces = tfc.zeros([this.numRows, this.pointsPerRow * 2]);
+      const attractiveForces = tf.zeros([this.numRows, this.pointsPerRow * 2]);
       this.computeAttractiveForces(attractiveForces);
 
       // 6) compute the gradient
@@ -590,13 +590,13 @@ export class TSNEOptimizer {
       const gradient = this.gradient.mul(this._momentum).sub(gradientIter);
 
       this.gradient.dispose();
-      return [gradient,normQ];
+      return [gradient, normQ];
     });
 
     this._normQ = (await normQ.data())[0];
     normQ.dispose();
 
-    this.embedding = tfc.tidy(() => {
+    this.embedding = tf.tidy(() => {
       // 7) update the embedding
       const embedding = this.embedding.add(this.gradient);
       this.embedding.dispose();
@@ -694,7 +694,7 @@ export class TSNEOptimizer {
       }
     }
 
-    this.splatVertexIdBuffer = tfc.webgl.webgl_util.createStaticVertexBuffer(
+    this.splatVertexIdBuffer = tf.webgl.webgl_util.createStaticVertexBuffer(
         this.gpgpu.gl, splatVertexId);
 
     // Compute the interpolated value of Q (first channel)
@@ -717,8 +717,7 @@ export class TSNEOptimizer {
   // Compute the boundaries of the embedding for defining the splat area
   // and the visualization boundaries
   private async computeBoundaries(): Promise<void> {
-
-    const [min, max] = tfc.tidy(() => {
+    const [min, max] = tf.tidy(() => {
       // 2d tensor with some extra points
       const embedding2D =
           this.embedding.reshape([this.numRows * this.pointsPerRow, 2])
@@ -726,10 +725,10 @@ export class TSNEOptimizer {
 
       const min = embedding2D.min(0);
       const max = embedding2D.max(0);
-      return [min,max];
+      return [min, max];
     });
 
-    //TODO clean up the code
+    // TODO clean up the code
     this._minX = (await min.data())[0];
     this._maxX = (await max.data())[0];
     const offsetX = (this._maxX - this._minX) * 0.05;
@@ -765,7 +764,7 @@ export class TSNEOptimizer {
   }
 
   private initializeEmbeddingPositions(
-      embedding: tfc.Tensor, random: tfc.Tensor) {
+      embedding: tf.Tensor, random: tf.Tensor) {
     tsne_util.executeEmbeddingInitializationProgram(
         this.gpgpu, this.embeddingInitializationProgram,
         this.backend.getTexture(random.dataId), this.numPoints,
@@ -782,7 +781,7 @@ export class TSNEOptimizer {
         this.numRows, this.splatVertexIdBuffer);
   }
 
-  private computeInterpolatedQ(interpolatedQ: tfc.Tensor) {
+  private computeInterpolatedQ(interpolatedQ: tf.Tensor) {
     tsne_util.executeQInterpolatorProgram(
         this.gpgpu, this.qInterpolatorProgram, this._splatTexture,
         this.backend.getTexture(this.embedding.dataId), this.numPoints,
@@ -790,7 +789,7 @@ export class TSNEOptimizer {
         this.numRows, this.backend.getTexture(interpolatedQ.dataId));
   }
 
-  private computeInterpolatedXY(interpolatedXY: tfc.Tensor) {
+  private computeInterpolatedXY(interpolatedXY: tf.Tensor) {
     tsne_util.executeXYInterpolatorProgram(
         this.gpgpu, this.xyInterpolatorProgram, this._splatTexture,
         this.backend.getTexture(this.embedding.dataId),
@@ -799,7 +798,7 @@ export class TSNEOptimizer {
         this.numRows, this._eta);
   }
 
-  private computeAttractiveForces(attractiveForces: tfc.Tensor) {
+  private computeAttractiveForces(attractiveForces: tf.Tensor) {
     tsne_util.executeAttractiveForcesComputationProgram(
         this.gpgpu, this.attractiveForcesProgram,
         this.backend.getTexture(this.embedding.dataId), this.probOffsetTexture,
@@ -818,7 +817,7 @@ export class TSNEOptimizer {
   }
 
   private computeGaussianDistributions(
-      distributions: tfc.Tensor, distributionParameters: WebGLTexture,
+      distributions: tf.Tensor, distributionParameters: WebGLTexture,
       shape: RearrangedData, knnGraph: WebGLTexture) {
     tsne_util.executeGaussiaDistributionsFromDistancesProgram(
         this.gpgpu, this.gaussiaDistributionsFromDistancesProgram, knnGraph,

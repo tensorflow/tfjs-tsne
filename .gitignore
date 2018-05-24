@@ -4,3 +4,5 @@ dist/
 coverage/
 *.lock
 .cache
+*cache
+.DS_STORE

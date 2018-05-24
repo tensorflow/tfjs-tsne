@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs-core';
 
 import * as dataset_util from './dataset_util';
 import * as tf_tsne from './tsne_optimizer';
@@ -61,26 +61,26 @@ describe('TSNEOptimizer class', () => {
   it('requires 4 tensors', () => {
     // Embedding + Gradiend + momentum + exaggeration
     const tsne = new tf_tsne.TSNEOptimizer(1000, false);
-    expect(tfc.memory().numTensors).toBe(4);
+    expect(tf.memory().numTensors).toBe(4);
     tsne.dispose();
   });
 
   it('disposes its tensors', () => {
     const tsne = new tf_tsne.TSNEOptimizer(1000, false);
     tsne.dispose();
-    expect(tfc.memory().numTensors).toBe(0);
+    expect(tf.memory().numTensors).toBe(0);
   });
 
   it('keeps the number of tensors constant during neighbors initialization',
      () => {
        const tsne = new tf_tsne.TSNEOptimizer(1000, false);
-       const numTensors = tfc.memory().numTensors;
+       const numTensors = tf.memory().numTensors;
 
        const knnGraph = dataset_util.generateKNNClusterData(1000, 10, 100);
-       expect(tfc.memory().numTensors).toBe(numTensors);
+       expect(tf.memory().numTensors).toBe(numTensors);
        tsne.initializeNeighborsFromKNNGraph(
            1000, 100, knnGraph.distances, knnGraph.indices);
-       expect(tfc.memory().numTensors).toBe(numTensors);
+       expect(tf.memory().numTensors).toBe(numTensors);
        tsne.dispose();
      });
 
@@ -90,12 +90,12 @@ describe('TSNEOptimizer class', () => {
     tsne.initializeNeighborsFromKNNGraph(
         1000, 30, knnGraph.distances, knnGraph.indices);
 
-    const numTensors = tfc.memory().numTensors;
+    const numTensors = tf.memory().numTensors;
     const numIter = 100;
     for (let i = 0; i < numIter; ++i) {
       tsne.iterate();
     }
-    expect(tfc.memory().numTensors).toBe(numTensors);
+    expect(tf.memory().numTensors).toBe(numTensors);
     tsne.dispose();
   });
 
@@ -161,25 +161,25 @@ describe('TSNEOptimizer class', () => {
 
   it('does not increase the tensor count when momentum is changed', () => {
     const tsne = new tf_tsne.TSNEOptimizer(100, false);
-    const numTensors = tfc.memory().numTensors;
+    const numTensors = tf.memory().numTensors;
     tsne.momentum = 0.1;
-    expect(tfc.memory().numTensors).toBe(numTensors);
+    expect(tf.memory().numTensors).toBe(numTensors);
     tsne.dispose();
   });
 
   it('does not increase the tensor count when exaggeration is changed', () => {
     const tsne = new tf_tsne.TSNEOptimizer(100, false);
-    const numTensors = tfc.memory().numTensors;
+    const numTensors = tf.memory().numTensors;
     tsne.exaggeration = 4;
-    expect(tfc.memory().numTensors).toBe(numTensors);
+    expect(tf.memory().numTensors).toBe(numTensors);
     tsne.dispose();
   });
 
   it('does not increase the tensor count after an embedding re-init', () => {
     const tsne = new tf_tsne.TSNEOptimizer(100, false);
-    const numTensors = tfc.memory().numTensors;
+    const numTensors = tf.memory().numTensors;
     tsne.initializeEmbedding();
-    expect(tfc.memory().numTensors).toBe(numTensors);
+    expect(tf.memory().numTensors).toBe(numTensors);
     tsne.dispose();
   });
 
@@ -223,8 +223,8 @@ describe('TSNEOptimizer class', () => {
     tsne.dispose();
   });
 
-  it('accpets only piecewise linear exaggeration greater'
-                                                  + ' than or equal to 1 (0)',
+  it('accpets only piecewise linear exaggeration greater' +
+         ' than or equal to 1 (0)',
      () => {
        const tsne = new tf_tsne.TSNEOptimizer(100, false);
        const ex = [{iteration: 0, value: 2}, {iteration: 100, value: 0.5}];
@@ -235,7 +235,7 @@ describe('TSNEOptimizer class', () => {
      });
 
   it('accpets only piecewise linear exaggeration greater' +
-                                                    ' than or equal to 1 (1)',
+         ' than or equal to 1 (1)',
      () => {
        const tsne = new tf_tsne.TSNEOptimizer(100, false);
        const ex = [{iteration: 0, value: 0}];

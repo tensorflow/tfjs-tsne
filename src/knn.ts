@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs-core';
 
 import * as dataset_util from './dataset_util';
 import * as gl_util from './gl_util';
-import * as knn_util from './knn_util';
 import {RearrangedData} from './interfaces';
+import * as knn_util from './knn_util';
 
 // tslint:disable-next-line:no-any
 function instanceOfRearrangedData(object: any): object is RearrangedData {
@@ -40,8 +40,8 @@ function instanceOfCustomDataDefinition(object: any):
 
 export class KNNEstimator {
   private verbose: boolean;
-  private backend: tfc.webgl.MathBackendWebGL;
-  private gpgpu: tfc.webgl.GPGPUContext;
+  private backend: tf.webgl.MathBackendWebGL;
+  private gpgpu: tf.webgl.GPGPUContext;
 
   private _iteration: number;
   private numNeighs: number;
@@ -77,7 +77,7 @@ export class KNNEstimator {
       verbose = false;
     }
     // Saving the GPGPU context
-    this.backend = tfc.ENV.findBackend('webgl') as tfc.webgl.MathBackendWebGL;
+    this.backend = tf.ENV.findBackend('webgl') as tf.webgl.MathBackendWebGL;
     this.gpgpu = this.backend.getGPGPUContext();
 
     this._iteration = 0;
@@ -121,7 +121,7 @@ export class KNNEstimator {
     this.initilizeCustomWebGLPrograms(distanceComputationSource);
   }
 
-  get pointsPerIteration(){
+  get pointsPerIteration() {
     return 20;
   }
 
@@ -177,17 +177,19 @@ export class KNNEstimator {
         linesVertexId[i] = i;
       }
     }
-    this.linesVertexIdBuffer = tfc.webgl.webgl_util.createStaticVertexBuffer(
+    this.linesVertexIdBuffer = tf.webgl.webgl_util.createStaticVertexBuffer(
         this.gpgpu.gl, linesVertexId);
   }
 
   iterateBruteForce() {
     if ((this._iteration % 2) === 0) {
       this.iterateGPU(
-          this.dataTexture, this._iteration, this.knnTexture0, this.knnTexture1);
+          this.dataTexture, this._iteration, this.knnTexture0,
+          this.knnTexture1);
     } else {
       this.iterateGPU(
-          this.dataTexture, this._iteration, this.knnTexture1, this.knnTexture0);
+          this.dataTexture, this._iteration, this.knnTexture1,
+          this.knnTexture0);
     }
     ++this._iteration;
     this.gpgpu.gl.finish();
@@ -195,10 +197,12 @@ export class KNNEstimator {
   iterateRandomSampling() {
     if ((this._iteration % 2) === 0) {
       this.iterateRandomSamplingGPU(
-          this.dataTexture, this._iteration, this.knnTexture0, this.knnTexture1);
+          this.dataTexture, this._iteration, this.knnTexture0,
+          this.knnTexture1);
     } else {
       this.iterateRandomSamplingGPU(
-          this.dataTexture, this._iteration, this.knnTexture1, this.knnTexture0);
+          this.dataTexture, this._iteration, this.knnTexture1,
+          this.knnTexture0);
     }
     ++this._iteration;
     this.gpgpu.gl.finish();
@@ -206,10 +210,12 @@ export class KNNEstimator {
   iterateKNNDescent() {
     if ((this._iteration % 2) === 0) {
       this.iterateKNNDescentGPU(
-          this.dataTexture, this._iteration, this.knnTexture0, this.knnTexture1);
+          this.dataTexture, this._iteration, this.knnTexture0,
+          this.knnTexture1);
     } else {
       this.iterateKNNDescentGPU(
-          this.dataTexture, this._iteration, this.knnTexture1, this.knnTexture0);
+          this.dataTexture, this._iteration, this.knnTexture1,
+          this.knnTexture0);
     }
     ++this._iteration;
     this.gpgpu.gl.finish();
@@ -223,9 +229,9 @@ export class KNNEstimator {
     }
   }
 
-  distancesTensor(): tfc.Tensor {
-    return tfc.tidy(() => {
-      const distances = tfc.zeros([
+  distancesTensor(): tf.Tensor {
+    return tf.tidy(() => {
+      const distances = tf.zeros([
         this.knnDataShape.numRows,
         this.knnDataShape.pointsPerRow * this.knnDataShape.pixelsPerPoint
       ]);
@@ -237,9 +243,9 @@ export class KNNEstimator {
     });
   }
 
-  indicesTensor(): tfc.Tensor {
-    return tfc.tidy(() => {
-      const indices = tfc.zeros([
+  indicesTensor(): tf.Tensor {
+    return tf.tidy(() => {
+      const indices = tf.zeros([
         this.knnDataShape.numRows,
         this.knnDataShape.pointsPerRow * this.knnDataShape.pixelsPerPoint
       ]);
@@ -273,5 +279,4 @@ export class KNNEstimator {
         this.gpgpu, this.kNNDescentProgram, dataTexture, startingKNNTexture,
         _iteration, this.knnDataShape, this.linesVertexIdBuffer, targetTexture);
   }
-
 }

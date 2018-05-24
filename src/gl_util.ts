@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs-core';
 
 //////////////////////  GPGPU_CONTEXT  /////////////////////////////
 // Method of the GPGPUContext class
@@ -28,16 +28,16 @@ export function createVertexProgram(
   // const gl = this.gl;
 
   const vertexShader: WebGLShader =
-      tfc.webgl.webgl_util.createVertexShader(gl, vertexShaderSource);
+      tf.webgl.webgl_util.createVertexShader(gl, vertexShaderSource);
   const fragmentShader: WebGLShader =
-      tfc.webgl.webgl_util.createFragmentShader(gl, fragmentShaderSource);
-  const program: WebGLProgram = tfc.webgl.webgl_util.createProgram(gl);
-  tfc.webgl.webgl_util.callAndCheck(
+      tf.webgl.webgl_util.createFragmentShader(gl, fragmentShaderSource);
+  const program: WebGLProgram = tf.webgl.webgl_util.createProgram(gl);
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.attachShader(program, vertexShader));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.attachShader(program, fragmentShader));
-  tfc.webgl.webgl_util.linkProgram(gl, program);
-  tfc.webgl.webgl_util.validateProgram(gl, program);
+  tf.webgl.webgl_util.linkProgram(gl, program);
+  tf.webgl.webgl_util.validateProgram(gl, program);
 
   return program;
 }
@@ -48,29 +48,29 @@ export function createVertexProgram(
 export function createAndConfigureInterpolatedTexture(
     gl: WebGLRenderingContext, width: number, height: number,
     numChannels: number, pixels?: ArrayBufferView): WebGLTexture {
-  tfc.webgl.webgl_util.validateTextureSize(gl, width, height);
-  const texture = tfc.webgl.webgl_util.createTexture(gl);
+  tf.webgl.webgl_util.validateTextureSize(gl, width, height);
+  const texture = tf.webgl.webgl_util.createTexture(gl);
 
   const tex2d = gl.TEXTURE_2D;
   const internalFormat = getTextureInternalFormat(gl, numChannels);
   const format = getTextureFormat(gl, numChannels);
 
-  tfc.webgl.webgl_util.callAndCheck(gl, () => gl.bindTexture(tex2d, texture));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(gl, () => gl.bindTexture(tex2d, texture));
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.LINEAR));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.LINEAR));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl,
       () => gl.texImage2D(
           tex2d, 0, internalFormat, width, height, 0, format,
           getTextureType(gl), pixels));
 
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
   return texture;
 }
@@ -78,28 +78,28 @@ export function createAndConfigureInterpolatedTexture(
 export function createAndConfigureTexture(
     gl: WebGLRenderingContext, width: number, height: number,
     numChannels: number, pixels?: ArrayBufferView): WebGLTexture {
-  tfc.webgl.webgl_util.validateTextureSize(gl, width, height);
-  const texture = tfc.webgl.webgl_util.createTexture(gl);
+  tf.webgl.webgl_util.validateTextureSize(gl, width, height);
+  const texture = tf.webgl.webgl_util.createTexture(gl);
 
   const tex2d = gl.TEXTURE_2D;
   const internalFormat = getTextureInternalFormat(gl, numChannels);
   const format = getTextureFormat(gl, numChannels);
 
-  tfc.webgl.webgl_util.callAndCheck(gl, () => gl.bindTexture(tex2d, texture));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(gl, () => gl.bindTexture(tex2d, texture));
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl,
       () => gl.texImage2D(
           tex2d, 0, internalFormat, width, height, 0, format,
           getTextureType(gl), pixels));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
   return texture;
 }
@@ -107,28 +107,28 @@ export function createAndConfigureTexture(
 export function createAndConfigureUByteTexture(
     gl: WebGLRenderingContext, width: number, height: number,
     numChannels: number, pixels?: ArrayBufferView): WebGLTexture {
-  tfc.webgl.webgl_util.validateTextureSize(gl, width, height);
-  const texture = tfc.webgl.webgl_util.createTexture(gl);
+  tf.webgl.webgl_util.validateTextureSize(gl, width, height);
+  const texture = tf.webgl.webgl_util.createTexture(gl);
 
   const tex2d = gl.TEXTURE_2D;
   const internalFormat = getTextureInternalUByteFormat(gl, numChannels);
   const format = getTextureFormat(gl, numChannels);
 
-  tfc.webgl.webgl_util.callAndCheck(gl, () => gl.bindTexture(tex2d, texture));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(gl, () => gl.bindTexture(tex2d, texture));
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl,
       () => gl.texImage2D(
           tex2d, 0, internalFormat, width, height, 0, format,
           getTextureTypeUByte(gl), pixels));
-  tfc.webgl.webgl_util.callAndCheck(
+  tf.webgl.webgl_util.callAndCheck(
       gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
   return texture;
 }
@@ -148,7 +148,6 @@ export function createAndConfigureUByteTexture(
 // EXACT COPY DLJS
 function getTextureInternalFormat(
     gl: WebGLRenderingContext, numChannels: number): number {
-
   if (numChannels === 4) {
     // tslint:disable-next-line:no-any
     return (gl as any).RGBA32F;
@@ -165,7 +164,6 @@ function getTextureInternalFormat(
 
 function getTextureInternalUByteFormat(
     gl: WebGLRenderingContext, numChannels: number): number {
-
   if (numChannels === 4) {
     // tslint:disable-next-line:no-any
     return (gl as any).RGBA8;
@@ -182,7 +180,6 @@ function getTextureInternalUByteFormat(
 
 function getTextureFormat(
     gl: WebGLRenderingContext, numChannels: number): number {
-
   if (numChannels === 4) {
     // tslint:disable-next-line:no-any
     return (gl as any).RGBA;

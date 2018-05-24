@@ -15,30 +15,30 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
-import {TSNEOptimizer} from './tsne_optimizer';
-import {KNNEstimator} from './knn';
-import {RearrangedData} from './interfaces';
-import {tensorToDataTexture} from './tensor_to_data_texture';
+import * as tf from '@tensorflow/tfjs-core';
 
-export interface TSNEConfiguration{
-  perplexity?: number;            //Default: 30
-  exaggeration?: number;          //Default: 4
-  exaggerationIter?:number;       //Default: 300
-  exaggerationDecayIter?: number; //Default: 200
-  momentum?: number;              //Default: 0.8
-  verbose?: boolean;              //Default: false
-  knnMode: 'auto' | 'bruteForce' | 'kNNDescentProgram' | 'random';
-                                                              //Default: auto
+import {RearrangedData} from './interfaces';
+import {KNNEstimator} from './knn';
+import {tensorToDataTexture} from './tensor_to_data_texture';
+import {TSNEOptimizer} from './tsne_optimizer';
+
+export interface TSNEConfiguration {
+  perplexity?: number;             // Default: 30
+  exaggeration?: number;           // Default: 4
+  exaggerationIter?: number;       // Default: 300
+  exaggerationDecayIter?: number;  // Default: 200
+  momentum?: number;               // Default: 0.8
+  verbose?: boolean;               // Default: false
+  knnMode: 'auto'|'bruteForce'|'kNNDescentProgram'|'random';
+  // Default: auto
 }
 
-export function tsne(data: tfc.Tensor, config?: TSNEConfiguration){
+export function tsne(data: tf.Tensor, config?: TSNEConfiguration) {
   return new TSNE(data, config);
 }
 
 export class TSNE {
-
-  private data: tfc.Tensor;
+  private data: tf.Tensor;
   private numPoints: number;
   private numDimensions: number;
   private numNeighbors: number;
@@ -49,9 +49,9 @@ export class TSNE {
   private config: TSNEConfiguration;
   private initialized: boolean;
   private probabilitiesInitialized: boolean;
-  // private knnMode: 'auto' | 'bruteForce' | 'kNNDescentProgram' | 'random';
+  private knnMode: 'auto'|'bruteForce'|'kNNDescentProgram'|'random';
 
-  constructor(data: tfc.Tensor, config?: TSNEConfiguration){
+  constructor(data: tf.Tensor, config?: TSNEConfiguration) {
     this.initialized = false;
     this.probabilitiesInitialized = false;
     this.data = data;
@@ -64,10 +64,13 @@ export class TSNE {
     if (inputShape.length !== 2) {
       throw Error('computeTSNE: input tensor must be 2-dimensional');
     }
+
+    // TODO remove once this is used elsewhere.
+    console.log(this.knnMode);
   }
 
-  private async initialize(): Promise<void>{
-    //Default parameters
+  private async initialize(): Promise<void> {
+    // Default parameters
     let perplexity = 30;
     let exaggeration = 4;
     let exaggerationIter = 300;
@@ -76,7 +79,7 @@ export class TSNE {
     this.verbose = false;
     this.knnMode = 'auto';
 
-    //Reading user defined configuration
+    // Reading user defined configuration
     if (this.config !== undefined) {
       if (this.config.perplexity !== undefined) {
         perplexity = this.config.perplexity;
@@ -101,57 +104,60 @@ export class TSNE {
       }
     }
 
-    //Number of neighbors cannot exceed 128
+    // Number of neighbors cannot exceed 128
     if (perplexity > 42) {
       throw Error('computeTSNE: perplexity cannot be greater than 42');
     }
-    //Neighbors must be roughly 3*perplexity and a multiple of 4
+    // Neighbors must be roughly 3*perplexity and a multiple of 4
     this.numNeighbors = Math.floor((perplexity * 3) / 4) * 4;
     this.packedData = await tensorToDataTexture(this.data);
 
-    if ( this.verbose === true ){
+    if (this.verbose === true) {
       console.log(`Number of points ${this.numPoints}`);
       console.log(`Number of dimensions ${this.numDimensions}`);
       console.log(`Number of neighbors ${this.numNeighbors}`);
     }
 
-    this.knnEstimator
-            = new KNNEstimator(this.packedData.texture,this.packedData.shape,
-                  this.numPoints,this.numDimensions,this.numNeighbors,false);
+    this.knnEstimator = new KNNEstimator(
+        this.packedData.texture, this.packedData.shape, this.numPoints,
+        this.numDimensions, this.numNeighbors, false);
 
     this.optimizer = new TSNEOptimizer(this.numPoints, false);
-    const exaggerationPolyline
-            = [{iteration: exaggerationIter, value: exaggeration},
-               {iteration: exaggerationIter + exaggerationDecayIter, value: 1}];
+    const exaggerationPolyline = [
+      {iteration: exaggerationIter, value: exaggeration},
+      {iteration: exaggerationIter + exaggerationDecayIter, value: 1}
+    ];
 
-    if ( this.verbose === true ){
-      console.log(`Exaggerating for ${exaggerationPolyline[0].iteration} `
-      + `iterations with a value of ${exaggerationPolyline[0].value}. `
-      + `Exaggeration is removed after ${exaggerationPolyline[1].iteration}.`);
+    if (this.verbose === true) {
+      console.log(
+          `Exaggerating for ${exaggerationPolyline[0].iteration} ` +
+          `iterations with a value of ${exaggerationPolyline[0].value}. ` +
+          `Exaggeration is removed after ${
+              exaggerationPolyline[1].iteration}.`);
     }
 
     this.optimizer.exaggeration = exaggerationPolyline;
     this.optimizer.momentum = momentum;
   }
 
-  async compute(iterations: number): Promise<void>{
+  async compute(iterations: number): Promise<void> {
     const knnIter = this.knnIterations();
-    if ( this.verbose ){
+    if (this.verbose) {
       console.log(`Number of KNN iterations:\t${knnIter}`);
       console.log('Computing the KNN...');
     }
     await this.iterateKnn(knnIter);
-    if ( this.verbose ){
+    if (this.verbose) {
       console.log('Computing the tSNE embedding...');
     }
     await this.iterate(iterations);
-    if ( this.verbose ){
+    if (this.verbose) {
       console.log('Done!');
     }
   }
 
-  async iterateKnn(iterations: number): Promise<boolean>{
-    if(this.initialized === false){
+  async iterateKnn(iterations: number): Promise<boolean> {
+    if (this.initialized === false) {
       await this.initialize();
     }
     this.probabilitiesInitialized = false;
@@ -161,15 +167,15 @@ export class TSNE {
         console.log(`Iteration KNN:\t${this.knnEstimator.iteration}`);
       }
     }
-    return true; //TODO
+    return true;  // TODO
   }
-  async iterate(iterations: number): Promise<void>{
-    if(this.probabilitiesInitialized === false){
+  async iterate(iterations: number): Promise<void> {
+    if (this.probabilitiesInitialized === false) {
       await this.initializeProbabilities();
     }
-    for(let iter = 0; iter < iterations; ++iter){
+    for (let iter = 0; iter < iterations; ++iter) {
       await this.optimizer.iterate();
-      if ( (this.optimizer.iteration % 100) === 0 && this.verbose === true ){
+      if ((this.optimizer.iteration % 100) === 0 && this.verbose === true) {
         console.log(`Iteration tSNE:\t${this.optimizer.iteration}`);
       }
     }
@@ -178,25 +184,25 @@ export class TSNE {
   /**
    * Return the maximum number of KNN iterations to be performed
    */
-  knnIterations(){
+  knnIterations() {
     return Math.ceil(this.numPoints / 20);
   }
 
-  coordinates(): tfc.Tensor {
+  coordinates(): tf.Tensor {
     return this.optimizer.embedding2D;
   }
 
   knnDistance(): number {
-    //TODO
+    // TODO
     return 0;
   }
 
-  private async initializeProbabilities(){
-    if ( this.verbose === true ){
+  private async initializeProbabilities() {
+    if (this.verbose === true) {
       console.log(`Initializing probabilities`);
     }
     await this.optimizer.initializeNeighborsFromKNNTexture(
-                        this.knnEstimator.knnShape, this.knnEstimator.knn());
+        this.knnEstimator.knnShape, this.knnEstimator.knn());
 
     this.probabilitiesInitialized = true;
   }

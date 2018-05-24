@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs-core';
 import * as gl_util from './gl_util';
 import {RearrangedData} from './interfaces';
 
@@ -162,7 +162,7 @@ export function generateKNNClusterTexture(
   }
 
   // Generating texture
-  const backend = tfc.ENV.findBackend('webgl') as tfc.webgl.MathBackendWebGL;
+  const backend = tf.ENV.findBackend('webgl') as tf.webgl.MathBackendWebGL;
   if (backend === null) {
     throw Error('WebGL backend is not available');
   }
@@ -197,7 +197,7 @@ export function generateKNNLineTexture(numPoints: number, numNeighbors: number):
   }
 
   // Generating texture
-  const backend = tfc.ENV.findBackend('webgl') as tfc.webgl.MathBackendWebGL;
+  const backend = tf.ENV.findBackend('webgl') as tf.webgl.MathBackendWebGL;
   if (backend === null) {
     throw Error('WebGL backend is not available');
   }

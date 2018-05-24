@@ -18,7 +18,10 @@ set -e
 
 rimraf dist/
 yarn
-tsc --sourceMap false
-browserify --standalone tfc src/index.ts -p [tsify] > dist/tf-tsne.js
-uglifyjs dist/tf-tsne.js -c -m -o dist/tf-tsne.min.js
-echo "Stored standalone library at dist/tf-tsne(.min).js"
+
+yarn build
+rollup -c
+
+uglifyjs dist/tfjs-tsne.js -c -m -o dist/tfjs-tsne.min.js
+
+echo "Stored standalone library at dist/tfjs-tsne(.min).js"
