@@ -34,7 +34,7 @@ export default {
         `// @tensorflow/tfjs-tsne Copyright ${(new Date).getFullYear()} Google`,
     file: 'dist/tfjs-tsne.js',
     format: 'umd',
-    name: 'tsne',
+    name: 'tfjs_tsne',
     globals: {'@tensorflow/tfjs-core': 'tf'}
   },
   external: ['@tensorflow/tfjs-core'],
