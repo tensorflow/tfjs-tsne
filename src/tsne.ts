@@ -186,7 +186,35 @@ export class TSNE {
    */
   knnIterations() { return Math.ceil(this.numPoints / 20); }
 
-  coordinates(): tf.Tensor { return this.optimizer.embedding2D; }
+  coordinates(normalized = true): tf.Tensor {
+    if (normalized) {
+      return tf.tidy(() => {
+        const rangeX = this.optimizer.maxX - this.optimizer.minX;
+        const rangeY = this.optimizer.maxY - this.optimizer.minY;
+        const min =
+            tf.tensor2d([ this.optimizer.minX, this.optimizer.minY ], [ 1, 2 ]);
+        const max =
+            tf.tensor2d([ this.optimizer.maxX, this.optimizer.maxY ], [ 1, 2 ]);
+
+        // The embedding is normalized in the 0-1 range while preserving the
+        // aspect ratio
+        const range = max.sub(min);
+        const maxRange = tf.max(range);
+        const offset = tf.tidy(() => {
+          if (rangeX < rangeY) {
+            return tf.tensor2d([ (rangeY - rangeX) / 2, 0 ], [ 1, 2 ]);
+          } else {
+            return tf.tensor2d([ 0, (rangeX - rangeY) / 2 ], [ 1, 2 ]);
+          }
+        });
+
+        return this.optimizer.embedding2D.sub(min).add(offset).div(maxRange);
+      });
+
+    } else {
+      return this.optimizer.embedding2D;
+    }
+  }
 
   knnDistance(): number {
     // TODO
