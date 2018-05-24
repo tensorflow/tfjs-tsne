@@ -23,12 +23,12 @@ import {tensorToDataTexture} from './tensor_to_data_texture';
 import {TSNEOptimizer} from './tsne_optimizer';
 
 export interface TSNEConfiguration {
-  perplexity?: number;             // Default: 30
-  exaggeration?: number;           // Default: 4
-  exaggerationIter?: number;       // Default: 300
-  exaggerationDecayIter?: number;  // Default: 200
-  momentum?: number;               // Default: 0.8
-  verbose?: boolean;               // Default: false
+  perplexity?: number;            // Default: 30
+  exaggeration?: number;          // Default: 4
+  exaggerationIter?: number;      // Default: 300
+  exaggerationDecayIter?: number; // Default: 200
+  momentum?: number;              // Default: 0.8
+  verbose?: boolean;              // Default: false
   knnMode: 'auto'|'bruteForce'|'kNNDescentProgram'|'random';
   // Default: auto
 }
@@ -112,7 +112,7 @@ export class TSNE {
     this.numNeighbors = Math.floor((perplexity * 3) / 4) * 4;
     this.packedData = await tensorToDataTexture(this.data);
 
-    if (this.verbose === true) {
+    if (this.verbose) {
       console.log(`Number of points ${this.numPoints}`);
       console.log(`Number of dimensions ${this.numDimensions}`);
       console.log(`Number of neighbors ${this.numNeighbors}`);
@@ -124,11 +124,11 @@ export class TSNE {
 
     this.optimizer = new TSNEOptimizer(this.numPoints, false);
     const exaggerationPolyline = [
-      {iteration: exaggerationIter, value: exaggeration},
-      {iteration: exaggerationIter + exaggerationDecayIter, value: 1}
+      {iteration : exaggerationIter, value : exaggeration},
+      {iteration : exaggerationIter + exaggerationDecayIter, value : 1}
     ];
 
-    if (this.verbose === true) {
+    if (this.verbose) {
       console.log(
           `Exaggerating for ${exaggerationPolyline[0].iteration} ` +
           `iterations with a value of ${exaggerationPolyline[0].value}. ` +
@@ -140,7 +140,7 @@ export class TSNE {
     this.optimizer.momentum = momentum;
   }
 
-  async compute(iterations: number): Promise<void> {
+  async compute(iterations = 1000): Promise<void> {
     const knnIter = this.knnIterations();
     if (this.verbose) {
       console.log(`Number of KNN iterations:\t${knnIter}`);
@@ -156,26 +156,26 @@ export class TSNE {
     }
   }
 
-  async iterateKnn(iterations: number): Promise<boolean> {
-    if (this.initialized === false) {
+  async iterateKnn(iterations = 1): Promise<boolean> {
+    if (!this.initialized) {
       await this.initialize();
     }
     this.probabilitiesInitialized = false;
     for (let iter = 0; iter < iterations; ++iter) {
       this.knnEstimator.iterateBruteForce();
-      if ((this.knnEstimator.iteration % 100) === 0 && this.verbose === true) {
+      if ((this.knnEstimator.iteration % 100) === 0 && this.verbose) {
         console.log(`Iteration KNN:\t${this.knnEstimator.iteration}`);
       }
     }
-    return true;  // TODO
+    return true; // TODO
   }
-  async iterate(iterations: number): Promise<void> {
-    if (this.probabilitiesInitialized === false) {
+  async iterate(iterations = 1): Promise<void> {
+    if (!this.probabilitiesInitialized) {
       await this.initializeProbabilities();
     }
     for (let iter = 0; iter < iterations; ++iter) {
       await this.optimizer.iterate();
-      if ((this.optimizer.iteration % 100) === 0 && this.verbose === true) {
+      if ((this.optimizer.iteration % 100) === 0 && this.verbose) {
         console.log(`Iteration tSNE:\t${this.optimizer.iteration}`);
       }
     }
@@ -184,13 +184,9 @@ export class TSNE {
   /**
    * Return the maximum number of KNN iterations to be performed
    */
-  knnIterations() {
-    return Math.ceil(this.numPoints / 20);
-  }
+  knnIterations() { return Math.ceil(this.numPoints / 20); }
 
-  coordinates(): tf.Tensor {
-    return this.optimizer.embedding2D;
-  }
+  coordinates(): tf.Tensor { return this.optimizer.embedding2D; }
 
   knnDistance(): number {
     // TODO
@@ -198,7 +194,7 @@ export class TSNE {
   }
 
   private async initializeProbabilities() {
-    if (this.verbose === true) {
+    if (this.verbose) {
       console.log(`Initializing probabilities`);
     }
     await this.optimizer.initializeNeighborsFromKNNTexture(
