@@ -189,25 +189,26 @@ export class TSNE {
   coordinates(normalized = true): tf.Tensor {
     if (normalized) {
       return tf.tidy(() => {
-        const extensionX = this.optimizer.maxX - this.optimizer.minX;
-        const extensionY = this.optimizer.maxY - this.optimizer.minY;
+        const rangeX = this.optimizer.maxX - this.optimizer.minX;
+        const rangeY = this.optimizer.maxY - this.optimizer.minY;
         const min =
             tf.tensor2d([ this.optimizer.minX, this.optimizer.minY ], [ 1, 2 ]);
         const max =
             tf.tensor2d([ this.optimizer.maxX, this.optimizer.maxY ], [ 1, 2 ]);
-        const extension = max.sub(min);
-        const maxExtension = tf.max(extension);
 
+        // The embedding is normalized in the 0-1 range while preserving the
+        // aspect ratio
+        const range = max.sub(min);
+        const maxRange = tf.max(range);
         const offset = tf.tidy(() => {
-          if (extensionX < extensionY) {
-            return tf.tensor2d([ (extensionY - extensionX) / 2, 0 ], [ 1, 2 ]);
+          if (rangeX < rangeY) {
+            return tf.tensor2d([ (rangeY - rangeX) / 2, 0 ], [ 1, 2 ]);
           } else {
-            return tf.tensor2d([ 0, (extensionX - extensionY) / 2 ], [ 1, 2 ]);
+            return tf.tensor2d([ 0, (rangeX - rangeY) / 2 ], [ 1, 2 ]);
           }
         });
 
-        return this.optimizer.embedding2D.sub(min).add(offset).div(
-            maxExtension);
+        return this.optimizer.embedding2D.sub(min).add(offset).div(maxRange);
       });
 
     } else {
