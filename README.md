@@ -1,50 +1,59 @@
-## Starter project in TypeScript
+## tSNE for TensorFlow.js
 
-This is a starter project demonstrating how to use
-[deeplearn.js](https://deeplearn.js) in a TypeScript environment.
+This library contains a improved tSNE implementation that runs in the browser.
 
-Before we start, see [`main.ts`](./main.ts) for the example code. It sums a 1D
-array with a scalar (taking advantage of broadcasting) and outputs the result in
-the console. Feel free to also check [`package.json`](./package.json) for the
-scripts we will be using.
 
-> NOTE: This setup uses [browserify](http://browserify.org/) as a bundler. Feel
-> free to change the setup to use your preferred bundler
-> ([WebPack](https://webpack.github.io/), [Rollup](https://rollupjs.org/), ...).
+### Computing tSNE with a single call
 
-We start with preparing the dev environment:
+A simple example for computing the tSNE embedding for a random dataset
+containing 2000 in a 10 dimensional space is the following:
 
-```bash
-$ yarn prep # Installs node modules and prepares the dev environment.
+```javascript
+const data = tf.randomUniform([2000,10]);
+const tsne = tf_tsne.tsne(data);
+tsne.compute();
+const coordinates = tsne.coordinates();
+coordinates.print();
 ```
 
-To interactively develop with fast edit-refresh cycle (~200-400ms):
+### Computing tSNE iteratively
 
-```bash
-$ yarn watch
->> 1275567 bytes written to dist/bundle.js (0.58 seconds) at 10:18:10 AM
+You can also compute the embedding iteratively.
+First you have to compute the KNN graph, an iterative operation that does not provide any intermediate result.
+Then you can compute the tSNE iteratively and drawing the result as it evolves.
+
+```javascript
+const data = tf.randomUniform([2000,10]);
+const tsne = tf_tsne.tsne(data);
+
+//Get the maximum number of iterations to perform
+const knnIterations = tsne.knnIterations();
+for(let i = 0; i < knnIterations; ++i){
+  tsne.iterateKnn();
+  //Notify the percentage of computed KNN
+}
+
+const tsneIterations = 1000;
+for(let i = 0; i < tsneIterations; ++i){
+  tsne.iterate();
+  //Draw the embedding here
+}
+tsne.compute();
+const coordinates = tsne.coordinates();
+coordinates.print();
 ```
 
-Then visit `index.html` in the browser and open the console. You should see:
+### Limitations
+We experimented with different data size, both in the number of data points and dimensions.
+As a rule of thumb, you can safely embed data with a shape of [10000,100].
+***You can go up to?!? not sure on how to phrase it...***
 
-```
-Float32Array(3) [3, 4, 5]
-Float32Array(3) [3, 4, 5]
-Float32Array(3) [3, 4, 5]
-```
+Above a certain number of data points the computation of the similarities becomes a bottleneck, a problem that we plan to address in the future.
 
-To produce a non-minified bundle for production:
 
-```
-$ yarn build
-```
+### Implementation
+This work makes use of [linear tSNE optimization](https://arxiv) for the optimization of the embedding and an optimized brute force computation of the kNN graph in the GPU.
 
-Stores the output in `dist/bundle.js`.
-
-To produce a minified bundle for production:
-
-```
-$ yarn deploy
-```
-
-Stores the output in `dist/bundle.min.js`.
+### Reference
+Reference to cite if you use this implementation in a research paper:
+***Are you fine with this or is too pushy?!?***
