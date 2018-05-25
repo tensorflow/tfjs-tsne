@@ -169,7 +169,7 @@ export class TSNE {
     }
   }
 
-  async iterateKnn(iterations = 1): Promise<boolean> {
+  async iterateKnn(iterations = 1): Promise<void> {
     if (!this.initialized) {
       await this.initialize();
     }
@@ -180,8 +180,8 @@ export class TSNE {
         console.log(`Iteration KNN:\t${this.knnEstimator.iteration}`);
       }
     }
-    return true; // TODO
   }
+
   async iterate(iterations = 1): Promise<void> {
     if (!this.probabilitiesInitialized) {
       await this.initializeProbabilities();
