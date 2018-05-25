@@ -25,7 +25,7 @@ import * as knn_util from './knn_util';
 // tslint:disable-next-line:no-any
 function instanceOfRearrangedData(object: any): object is RearrangedData {
   return 'numPoints' in object && 'pointsPerRow' in object &&
-      'pixelsPerPoint' in object && 'numRows' in object;
+         'pixelsPerPoint' in object && 'numRows' in object;
 }
 
 // Allows for computing distances between data in a non standard format
@@ -60,17 +60,13 @@ export class KNNEstimator {
 
   private knnDataShape: RearrangedData;
 
-  get knnShape(): RearrangedData {
-    return this.knnDataShape;
-  }
-  get iteration() {
-    return this._iteration;
-  }
+  get knnShape(): RearrangedData { return this.knnDataShape; }
+  get iteration() { return this._iteration; }
 
-  constructor(
-      dataTexture: WebGLTexture,
-      dataFormat: RearrangedData|CustomDataDefinition, numPoints: number,
-      numDimensions: number, numNeighs: number, verbose?: boolean) {
+  constructor(dataTexture: WebGLTexture,
+              dataFormat: RearrangedData|CustomDataDefinition,
+              numPoints: number, numDimensions: number, numNeighs: number,
+              verbose?: boolean) {
     if (verbose != null) {
       this.verbose = verbose;
     } else {
@@ -96,9 +92,9 @@ export class KNNEstimator {
         Math.ceil(Math.sqrt(numNeighs * numPoints) / numNeighs);
     this.knnDataShape = {
       numPoints,
-      pixelsPerPoint: numNeighs,
-      pointsPerRow: knnPointsPerRow,
-      numRows: Math.ceil(numPoints / knnPointsPerRow)
+      pixelsPerPoint : numNeighs,
+      pointsPerRow : knnPointsPerRow,
+      numRows : Math.ceil(numPoints / knnPointsPerRow)
     };
 
     this.log('knn-pntsPerRow', this.knnDataShape.pointsPerRow);
@@ -121,9 +117,7 @@ export class KNNEstimator {
     this.initilizeCustomWebGLPrograms(distanceComputationSource);
   }
 
-  get pointsPerIteration() {
-    return 20;
-  }
+  get pointsPerIteration() { return 20; }
 
   // Utility function for printing stuff
   // tslint:disable-next-line:no-any
@@ -138,9 +132,9 @@ export class KNNEstimator {
   }
 
   private initializeTextures() {
-    const initNeigh = new Float32Array(
-        this.knnDataShape.pointsPerRow * this.knnDataShape.pixelsPerPoint * 2 *
-        this.knnDataShape.numRows);
+    const initNeigh = new Float32Array(this.knnDataShape.pointsPerRow *
+                                       this.knnDataShape.pixelsPerPoint * 2 *
+                                       this.knnDataShape.numRows);
 
     const numNeighs = this.knnDataShape.pixelsPerPoint;
     for (let i = 0; i < this.knnDataShape.numPoints; ++i) {
@@ -183,39 +177,33 @@ export class KNNEstimator {
 
   iterateBruteForce() {
     if ((this._iteration % 2) === 0) {
-      this.iterateGPU(
-          this.dataTexture, this._iteration, this.knnTexture0,
-          this.knnTexture1);
+      this.iterateGPU(this.dataTexture, this._iteration, this.knnTexture0,
+                      this.knnTexture1);
     } else {
-      this.iterateGPU(
-          this.dataTexture, this._iteration, this.knnTexture1,
-          this.knnTexture0);
+      this.iterateGPU(this.dataTexture, this._iteration, this.knnTexture1,
+                      this.knnTexture0);
     }
     ++this._iteration;
     this.gpgpu.gl.finish();
   }
   iterateRandomSampling() {
     if ((this._iteration % 2) === 0) {
-      this.iterateRandomSamplingGPU(
-          this.dataTexture, this._iteration, this.knnTexture0,
-          this.knnTexture1);
+      this.iterateRandomSamplingGPU(this.dataTexture, this._iteration,
+                                    this.knnTexture0, this.knnTexture1);
     } else {
-      this.iterateRandomSamplingGPU(
-          this.dataTexture, this._iteration, this.knnTexture1,
-          this.knnTexture0);
+      this.iterateRandomSamplingGPU(this.dataTexture, this._iteration,
+                                    this.knnTexture1, this.knnTexture0);
     }
     ++this._iteration;
     this.gpgpu.gl.finish();
   }
   iterateKNNDescent() {
     if ((this._iteration % 2) === 0) {
-      this.iterateKNNDescentGPU(
-          this.dataTexture, this._iteration, this.knnTexture0,
-          this.knnTexture1);
+      this.iterateKNNDescentGPU(this.dataTexture, this._iteration,
+                                this.knnTexture0, this.knnTexture1);
     } else {
-      this.iterateKNNDescentGPU(
-          this.dataTexture, this._iteration, this.knnTexture1,
-          this.knnTexture0);
+      this.iterateKNNDescentGPU(this.dataTexture, this._iteration,
+                                this.knnTexture1, this.knnTexture0);
     }
     ++this._iteration;
     this.gpgpu.gl.finish();
@@ -231,7 +219,7 @@ export class KNNEstimator {
 
   distancesTensor(): tf.Tensor {
     return tf.tidy(() => {
-      const distances = tf.zeros([
+      let distances = tf.zeros([
         this.knnDataShape.numRows,
         this.knnDataShape.pointsPerRow * this.knnDataShape.pixelsPerPoint
       ]);
@@ -239,13 +227,23 @@ export class KNNEstimator {
       knn_util.executeCopyDistancesProgram(
           this.gpgpu, this.copyDistancesProgram, knnTexture, this.knnDataShape,
           this.backend.getTexture(distances.dataId));
+      // Reshape & Slice
+      distances =
+          distances
+              .reshape([
+                this.knnDataShape.numRows * this.knnDataShape.pointsPerRow,
+                this.knnDataShape.pixelsPerPoint
+              ])
+              .slice([ 0, 0 ], [
+                this.knnDataShape.numPoints, this.knnDataShape.pixelsPerPoint
+              ]);
       return distances;
     });
   }
 
   indicesTensor(): tf.Tensor {
     return tf.tidy(() => {
-      const indices = tf.zeros([
+      let indices = tf.zeros([
         this.knnDataShape.numRows,
         this.knnDataShape.pointsPerRow * this.knnDataShape.pixelsPerPoint
       ]);
@@ -253,28 +251,39 @@ export class KNNEstimator {
       knn_util.executeCopyIndicesProgram(
           this.gpgpu, this.copyIndicesProgram, knnTexture, this.knnDataShape,
           this.backend.getTexture(indices.dataId));
+      // Reshape & Slice
+      indices =
+          indices
+              .reshape([
+                this.knnDataShape.numRows * this.knnDataShape.pointsPerRow,
+                this.knnDataShape.pixelsPerPoint
+              ])
+              .slice([ 0, 0 ], [
+                this.knnDataShape.numPoints, this.knnDataShape.pixelsPerPoint
+              ]);
       return indices;
     });
   }
 
-  private iterateGPU(
-      dataTexture: WebGLTexture, _iteration: number,
-      startingKNNTexture: WebGLTexture, targetTexture?: WebGLTexture) {
+  private iterateGPU(dataTexture: WebGLTexture, _iteration: number,
+                     startingKNNTexture: WebGLTexture,
+                     targetTexture?: WebGLTexture) {
     knn_util.executeKNNProgram(
         this.gpgpu, this.bruteForceKNNProgram, dataTexture, startingKNNTexture,
         _iteration, this.knnDataShape, this.linesVertexIdBuffer, targetTexture);
   }
-  private iterateRandomSamplingGPU(
-      dataTexture: WebGLTexture, _iteration: number,
-      startingKNNTexture: WebGLTexture, targetTexture?: WebGLTexture) {
-    knn_util.executeKNNProgram(
-        this.gpgpu, this.randomSamplingKNNProgram, dataTexture,
-        startingKNNTexture, _iteration, this.knnDataShape,
-        this.linesVertexIdBuffer, targetTexture);
+  private iterateRandomSamplingGPU(dataTexture: WebGLTexture,
+                                   _iteration: number,
+                                   startingKNNTexture: WebGLTexture,
+                                   targetTexture?: WebGLTexture) {
+    knn_util.executeKNNProgram(this.gpgpu, this.randomSamplingKNNProgram,
+                               dataTexture, startingKNNTexture, _iteration,
+                               this.knnDataShape, this.linesVertexIdBuffer,
+                               targetTexture);
   }
-  private iterateKNNDescentGPU(
-      dataTexture: WebGLTexture, _iteration: number,
-      startingKNNTexture: WebGLTexture, targetTexture?: WebGLTexture) {
+  private iterateKNNDescentGPU(dataTexture: WebGLTexture, _iteration: number,
+                               startingKNNTexture: WebGLTexture,
+                               targetTexture?: WebGLTexture) {
     knn_util.executeKNNProgram(
         this.gpgpu, this.kNNDescentProgram, dataTexture, startingKNNTexture,
         _iteration, this.knnDataShape, this.linesVertexIdBuffer, targetTexture);

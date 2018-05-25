@@ -229,9 +229,17 @@ export class TSNE {
     }
   }
 
-  knnDistance(): number {
-    // TODO
-    return 0;
+  /**
+   * Return the cumulative distance in the KNN graph.
+   * It can be used to show the evolution of the of the KNN graph over time but
+   * it can be expensive
+   */
+  async knnTotalDistance(): Promise<number> {
+    const sum = tf.tidy(() => {
+      const distanceTensor = this.knnEstimator.distancesTensor();
+      return distanceTensor.sum();
+    });
+    return (await sum.data())[0];
   }
 
   private async initializeProbabilities() {
