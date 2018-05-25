@@ -49,7 +49,7 @@ export class TSNE {
   private config: TSNEConfiguration;
   private initialized: boolean;
   private probabilitiesInitialized: boolean;
-  private knnMode: 'auto'|'bruteForce'|'kNNDescentProgram'|'random';
+  private knnMode: 'auto'|'bruteForce';
 
   constructor(data: tf.Tensor, config?: TSNEConfiguration) {
     this.initialized = false;
@@ -64,11 +64,13 @@ export class TSNE {
     if (inputShape.length !== 2) {
       throw Error('computeTSNE: input tensor must be 2-dimensional');
     }
-
-    // TODO remove once this is used elsewhere.
-    console.log(this.knnMode);
   }
 
+  /**
+   * Initialization of the tSNE class. It is an async function as it performs
+   * lenghty operations. The function is called the first time the iterateKnn
+   * function is called.
+   */
   private async initialize(): Promise<void> {
     // Default parameters
     let perplexity = 30;
@@ -113,9 +115,10 @@ export class TSNE {
     this.packedData = await tensorToDataTexture(this.data);
 
     if (this.verbose) {
-      console.log(`Number of points ${this.numPoints}`);
-      console.log(`Number of dimensions ${this.numDimensions}`);
-      console.log(`Number of neighbors ${this.numNeighbors}`);
+      console.log(`Number of points:\t${this.numPoints}`);
+      console.log(`Number of dimensions:\t ${this.numDimensions}`);
+      console.log(`Number of neighbors:\t${this.numNeighbors}`);
+      console.log(`kNN mode:\t${this.knnMode}`);
     }
 
     this.knnEstimator = new KNNEstimator(
@@ -153,6 +156,12 @@ export class TSNE {
     }
   }
 
+  /**
+   * Compute the tSNE embedding with a single call. This function will perform
+   * the proper number of kNN iterations and the number of optimization
+   * iterations provided as input
+   * @param {number} iterations Number of iterations to compute. Default = 1000
+   */
   async compute(iterations = 1000): Promise<void> {
     const knnIter = this.knnIterations();
     if (this.verbose) {
@@ -169,6 +178,11 @@ export class TSNE {
     }
   }
 
+  /**
+   * Compute a number of iterations for computing the k-nearest neighborhood
+   * graph
+   * @param {number} iterations Number of iterations to compute. Default = 1
+   */
   async iterateKnn(iterations = 1): Promise<void> {
     if (!this.initialized) {
       await this.initialize();
@@ -182,6 +196,10 @@ export class TSNE {
     }
   }
 
+  /**
+   * Compute a number of tSNE iterations
+   * @param {number} iterations Number of iterations to compute. Default = 1
+   */
   async iterate(iterations = 1): Promise<void> {
     if (!this.probabilitiesInitialized) {
       await this.initializeProbabilities();
@@ -199,6 +217,9 @@ export class TSNE {
    */
   knnIterations() { return Math.ceil(this.numPoints / 20); }
 
+  /**
+   * Return the coordinates of the tSNE embedding in a 2-dimensional tensor
+   */
   coordinates(normalized = true): tf.Tensor {
     if (normalized) {
       return tf.tidy(() => {
@@ -242,6 +263,11 @@ export class TSNE {
     return (await sum.data())[0];
   }
 
+  /**
+   * Initialize the joint probability distribution from the computed KNN graph.
+   * It is called in the iterate function if there are updates in the KNN graph
+   * due to a previous call of the iterateKnn function
+   */
   private async initializeProbabilities() {
     if (this.verbose) {
       console.log(`Initializing probabilities`);
