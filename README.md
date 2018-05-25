@@ -3,50 +3,150 @@
 This library contains a improved tSNE implementation that runs in the browser.
 
 
-### Computing tSNE with a single call
+## Installation & Usage
 
-A simple example for computing the tSNE embedding for a random dataset
-containing 2000 in a 10 dimensional space is the following:
+You can use tfjs-tsne via a script tag or via NPM
 
-```javascript
-const data = tf.randomUniform([2000,10]);
-const tsne = tf_tsne.tsne(data);
-tsne.compute();
-const coordinates = tsne.coordinates();
-coordinates.print();
+### Script tag
+
+To use tfjs-tsne via script tag you need to load tfjs first. The following tags
+can be put into the head section of your html page to load the library.
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tsne"></script>
 ```
+
+This library will create a `tsne` variable on the global scope.
+You can then do the following
+
+```js
+// Create some data
+const data = tf.randomUniform([2000,10]);
+
+// Get a tsne optimizer
+const tsneOpt = tsne.optimizer(data);
+
+// Compute a T-SNE embedding, returns a promise.
+// Runs for 1000 iterations be default.
+tsneOpt.compute().then(() => {
+  // tsne.coordinate returns a *tensor* with x, y coordinates of
+  // the embedded data.
+  const coordinates = tsneOpt.coordinates();
+  coordinates.print();
+}) ;
+```
+
+### Via NPM
+
+```
+yarn add tensorflow@tfjs-tsne
+```
+or
+```
+npm install tensorflow@tfjs-tsne
+```
+
+Then
+
+```js
+import tsne from '@tensorflow/tfjs-tsne';
+
+// Create some data
+const data = tf.randomUniform([2000,10]);
+
+// Initialize the tsne optimizer
+const tsneOpt = tsne.optimizer(data);
+
+// Compute a T-SNE embedding, returns a promise.
+// Runs for 1000 iterations be default.
+tsneOpt.compute().then(() => {
+  // tsne.coordinate returns a *tensor* with x, y coordinates of
+  // the embedded data.
+  const coordinates = tsneOpt.coordinates();
+  coordinates.print();
+}) ;
+```
+
+## API
+
+### tsne.optimizer(data: tf.Tensor2d, config?: TSNEConfiguration)
+
+Creates and returns a TSNE optimizer. 
+
+- `data` must be a Rank 2 tensor. Shape is [numPoints, dataPointDimensions]
+- `config` is an optinal object with the following params (all are optional):
+  - perplexity: number — defaults to 30. Max value is 42
+  - verbose: boolean — defaults to false
+  - exaggeration: number — defaults to 4
+  - exaggerationIter: number — defaults to 300
+  - exaggerationDecayIter: number — defaults to 200
+  - momentum: number — defaults to 0.8
+  - knnMode: 'auto'|'bruteForce'|'kNNDescentProgram'|'random' — defaults to auto
+
+### .compute(iterations: number)
+
+The most direct way to get a tsne projection. Automtatically runs the knn preprocessing
+and the tsne optimization. Returns a promse to indicate when it is done.
+
+- iterations the number of iterations to run the tsne optimization for. (The number of knn steps is automatically calculated).
+
+### .iterateKnn(iterations: number)
+
+When running tsne iteratively (see section below). This runs runs the knn preprocessing
+for the specified number of iterations.
+
+### .iterate(iterations: number)
+
+When running tsne iteratively (see section below). This runs runs the tsne step for the specified number of iterations.
+
+### .coordinates()
+
+Gets the current x, y coordinates of the projected data as a tensor
+
+### .coordsArray()
+
+Gets the current x, y coordinates of the projected data as a JavaScript array
 
 ### Computing tSNE iteratively
 
-You can also compute the embedding iteratively.
-First you have to compute the KNN graph, an iterative operation that does not provide any intermediate result.
-Then you can compute the tSNE iteratively and drawing the result as it evolves.
+While the `.compute` method provides the most direct way to get an embedding. You can also compute the embedding iteratively and have more control over the process.
+
+The first step is computing the KNN graph using iterateKNN.
+
+Then you can compute the tSNE iteratively and examine the result as it evolves.
+
+The code below shows what that would look like
 
 ```javascript
 const data = tf.randomUniform([2000,10]);
 const tsne = tf_tsne.tsne(data);
 
-//Get the maximum number of iterations to perform
-const knnIterations = tsne.knnIterations();
-for(let i = 0; i < knnIterations; ++i){
-  tsne.iterateKnn();
-  //Notify the percentage of computed KNN
+async function iterativeTsne() {
+  // Get the suggested number of iterations to perform.
+  const knnIterations = tsne.knnIterations();
+  // Do the KNN computation. This needs to complete before we run tsne
+  for(let i = 0; i < knnIterations; ++i){
+    await tsne.iterateKnn();
+    // You can update knn progress in your ui here.
+  }
+
+  const tsneIterations = 1000;
+  for(let i = 0; i < tsneIterations; ++i){
+    await tsne.iterate();
+    // Draw the embedding here...
+    const coordinates = tsne.coordinates();
+    coordinates.print();
+  }
 }
 
-const tsneIterations = 1000;
-for(let i = 0; i < tsneIterations; ++i){
-  tsne.iterate();
-  //Draw the embedding here
-}
-tsne.compute();
-const coordinates = tsne.coordinates();
-coordinates.print();
+iterativeTsne();
 ```
 
 ### Limitations
-We experimented with different data size, both in the number of data points and dimensions.
-As a rule of thumb, you can safely embed data with a shape of [10000,100].
-***You can go up to?!? not sure on how to phrase it...***
+
+From our current experiments we suggest limiting the data size passed to this implementation
+to data with a shape of [10000,100], i.e. up to 10000 points with 100 dimensions each. You can do more but it might slow down.
 
 Above a certain number of data points the computation of the similarities becomes a bottleneck, a problem that we plan to address in the future.
 
@@ -56,4 +156,4 @@ This work makes use of [linear tSNE optimization](https://arxiv) for the optimiz
 
 ### Reference
 Reference to cite if you use this implementation in a research paper:
-***Are you fine with this or is too pushy?!?***
+[TK Add reference (and link) to paper]
