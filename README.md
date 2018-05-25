@@ -1,50 +1,159 @@
-## Starter project in TypeScript
+## tSNE for TensorFlow.js
 
-This is a starter project demonstrating how to use
-[deeplearn.js](https://deeplearn.js) in a TypeScript environment.
+This library contains a improved tSNE implementation that runs in the browser.
 
-Before we start, see [`main.ts`](./main.ts) for the example code. It sums a 1D
-array with a scalar (taking advantage of broadcasting) and outputs the result in
-the console. Feel free to also check [`package.json`](./package.json) for the
-scripts we will be using.
 
-> NOTE: This setup uses [browserify](http://browserify.org/) as a bundler. Feel
-> free to change the setup to use your preferred bundler
-> ([WebPack](https://webpack.github.io/), [Rollup](https://rollupjs.org/), ...).
+## Installation & Usage
 
-We start with preparing the dev environment:
+You can use tfjs-tsne via a script tag or via NPM
 
-```bash
-$ yarn prep # Installs node modules and prepares the dev environment.
+### Script tag
+
+To use tfjs-tsne via script tag you need to load tfjs first. The following tags
+can be put into the head section of your html page to load the library.
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tsne"></script>
 ```
 
-To interactively develop with fast edit-refresh cycle (~200-400ms):
+This library will create a `tsne` variable on the global scope.
+You can then do the following
 
-```bash
-$ yarn watch
->> 1275567 bytes written to dist/bundle.js (0.58 seconds) at 10:18:10 AM
+```js
+// Create some data
+const data = tf.randomUniform([2000,10]);
+
+// Get a tsne optimizer
+const tsneOpt = tsne.optimizer(data);
+
+// Compute a T-SNE embedding, returns a promise.
+// Runs for 1000 iterations be default.
+tsneOpt.compute().then(() => {
+  // tsne.coordinate returns a *tensor* with x, y coordinates of
+  // the embedded data.
+  const coordinates = tsneOpt.coordinates();
+  coordinates.print();
+}) ;
 ```
 
-Then visit `index.html` in the browser and open the console. You should see:
+### Via NPM
 
 ```
-Float32Array(3) [3, 4, 5]
-Float32Array(3) [3, 4, 5]
-Float32Array(3) [3, 4, 5]
+yarn add tensorflow@tfjs-tsne
+```
+or
+```
+npm install tensorflow@tfjs-tsne
 ```
 
-To produce a non-minified bundle for production:
+Then
 
+```js
+import tsne from '@tensorflow/tfjs-tsne';
+
+// Create some data
+const data = tf.randomUniform([2000,10]);
+
+// Initialize the tsne optimizer
+const tsneOpt = tsne.optimizer(data);
+
+// Compute a T-SNE embedding, returns a promise.
+// Runs for 1000 iterations be default.
+tsneOpt.compute().then(() => {
+  // tsne.coordinate returns a *tensor* with x, y coordinates of
+  // the embedded data.
+  const coordinates = tsneOpt.coordinates();
+  coordinates.print();
+}) ;
 ```
-$ yarn build
+
+## API
+
+### tsne.optimizer(data: tf.Tensor2d, config?: TSNEConfiguration)
+
+Creates and returns a TSNE optimizer. 
+
+- `data` must be a Rank 2 tensor. Shape is [numPoints, dataPointDimensions]
+- `config` is an optinal object with the following params (all are optional):
+  - perplexity: number — defaults to 30. Max value is 42
+  - verbose: boolean — defaults to false
+  - exaggeration: number — defaults to 4
+  - exaggerationIter: number — defaults to 300
+  - exaggerationDecayIter: number — defaults to 200
+  - momentum: number — defaults to 0.8
+  - knnMode: 'auto'|'bruteForce'|'kNNDescentProgram'|'random' — defaults to auto
+
+### .compute(iterations: number)
+
+The most direct way to get a tsne projection. Automtatically runs the knn preprocessing
+and the tsne optimization. Returns a promse to indicate when it is done.
+
+- iterations the number of iterations to run the tsne optimization for. (The number of knn steps is automatically calculated).
+
+### .iterateKnn(iterations: number)
+
+When running tsne iteratively (see section below). This runs runs the knn preprocessing
+for the specified number of iterations.
+
+### .iterate(iterations: number)
+
+When running tsne iteratively (see section below). This runs runs the tsne step for the specified number of iterations.
+
+### .coordinates()
+
+Gets the current x, y coordinates of the projected data as a tensor
+
+### .coordsArray()
+
+Gets the current x, y coordinates of the projected data as a JavaScript array
+
+### Computing tSNE iteratively
+
+While the `.compute` method provides the most direct way to get an embedding. You can also compute the embedding iteratively and have more control over the process.
+
+The first step is computing the KNN graph using iterateKNN.
+
+Then you can compute the tSNE iteratively and examine the result as it evolves.
+
+The code below shows what that would look like
+
+```javascript
+const data = tf.randomUniform([2000,10]);
+const tsne = tf_tsne.tsne(data);
+
+async function iterativeTsne() {
+  // Get the suggested number of iterations to perform.
+  const knnIterations = tsne.knnIterations();
+  // Do the KNN computation. This needs to complete before we run tsne
+  for(let i = 0; i < knnIterations; ++i){
+    await tsne.iterateKnn();
+    // You can update knn progress in your ui here.
+  }
+
+  const tsneIterations = 1000;
+  for(let i = 0; i < tsneIterations; ++i){
+    await tsne.iterate();
+    // Draw the embedding here...
+    const coordinates = tsne.coordinates();
+    coordinates.print();
+  }
+}
+
+iterativeTsne();
 ```
 
-Stores the output in `dist/bundle.js`.
+### Limitations
 
-To produce a minified bundle for production:
+From our current experiments we suggest limiting the data size passed to this implementation
+to data with a shape of [10000,100], i.e. up to 10000 points with 100 dimensions each. You can do more but it might slow down.
 
-```
-$ yarn deploy
-```
+Above a certain number of data points the computation of the similarities becomes a bottleneck, a problem that we plan to address in the future.
 
-Stores the output in `dist/bundle.min.js`.
+
+### Implementation
+This work makes use of [linear tSNE optimization](https://arxiv) for the optimization of the embedding and an optimized brute force computation of the kNN graph in the GPU.
+
+### Reference
+Reference to cite if you use this implementation in a research paper:
+[TK Add reference (and link) to paper]
