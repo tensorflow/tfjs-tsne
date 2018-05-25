@@ -53,7 +53,7 @@ function generateData(numDimensions, numPoints) {
  *
  */
 async function computeEmbedding(data, numPoints) {
-  const tsne = tfjs_tsne.tsne(data, {
+  const tsneOpt = tsne.optimizer(data, {
     perplexity: 30,
     verbose: true,
     knnMode: 'auto',
@@ -61,10 +61,10 @@ async function computeEmbedding(data, numPoints) {
 
   // This will run the TSNE computation for 1000 steps.
   // Note that this may take a while.
-  await tsne.compute(1000);
+  await tsneOpt.compute(1000);
 
   // Get the coordinates (in embedding space) of the data
-  const coordinates = await tsne.coordinates().data();
+  const coordinates = await tsneOpt.coordinates().data();
 
   const coords = [];
   for (let p = 0; p < numPoints; ++p) {

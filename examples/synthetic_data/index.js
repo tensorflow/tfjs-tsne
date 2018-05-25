@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs-core';
 import * as d3 from 'd3';
 
-import * as tf_tsne from '../../src/index';
+import * as tsne from '../../src/index';
 
 /**
  * Run the example
@@ -39,10 +39,10 @@ async function start() {
  * random noise is added. The data must be a rank 2 tensor.
  */
 function generateData(numDimensions, numPoints) {
-  const data = tfc.tidy(() => {
-    return tfc.linspace(0, 1, numPoints * numDimensions)
-        .reshape([ numPoints, numDimensions ])
-        .add(tfc.randomUniform([ numPoints, numDimensions ]));
+  const data = tf.tidy(() => {
+    return tf.linspace(0, 1, numPoints * numDimensions)
+        .reshape([numPoints, numDimensions])
+        .add(tf.randomUniform([numPoints, numDimensions]));
   });
   return data;
 }
@@ -55,25 +55,25 @@ function generateData(numDimensions, numPoints) {
  *
  */
 async function computeEmbedding(data, numPoints) {
-  const tsne = tf_tsne.tsne(data, {
-    perplexity : 30,
-    verbose : true,
-    knnMode : 'auto',
+  const tsneOpt = tsne.optimizer(data, {
+    perplexity: 30,
+    verbose: true,
+    knnMode: 'auto',
   });
 
   // This will run the TSNE computation for 1000 steps.
   // Note that this may take a while.
-  await tsne.compute(1000);
+  await tsneOpt.compute(1000);
 
   // Get the coordinates (in embedding space) of the data
-  const coordinates = await tsne.coordinates().data();
+  const coordinates = await tsneOpt.coordinates().data();
 
   const coords = [];
   for (let p = 0; p < numPoints; ++p) {
     // TODO reshape this to a 2d array.
     const x = coordinates[p * 2];
     const y = coordinates[p * 2 + 1];
-    coords.push([ x, y ]);
+    coords.push([x, y]);
   }
   return coords;
 }
@@ -82,12 +82,12 @@ async function computeEmbedding(data, numPoints) {
  * This will add a new plot visualizing the embedding space on a scatterplot.
  */
 function showEmbedding(data) {
-  const margin = {top : 20, right : 15, bottom : 60, left : 60};
+  const margin = {top: 20, right: 15, bottom: 60, left: 60};
   const width = 800 - margin.left - margin.right;
   const height = 800 - margin.top - margin.bottom;
 
-  const x = d3.scaleLinear().domain([ 0, 1 ]).range([ 0, width ]);
-  const y = d3.scaleLinear().domain([ 0, 1 ]).range([ height, 0 ]);
+  const x = d3.scaleLinear().domain([0, 1]).range([0, width]);
+  const y = d3.scaleLinear().domain([0, 1]).range([height, 0]);
 
   const chart = d3.select('body')
                     .append('svg')
@@ -95,12 +95,13 @@ function showEmbedding(data) {
                     .attr('height', height + margin.top + margin.bottom)
                     .attr('class', 'chart');
 
-  const main = chart.append('g')
-                   .attr('transform',
-                         'translate(' + margin.left + ',' + margin.top + ')')
-                   .attr('width', width)
-                   .attr('height', height)
-                   .attr('class', 'main');
+  const main =
+      chart.append('g')
+          .attr(
+              'transform', 'translate(' + margin.left + ',' + margin.top + ')')
+          .attr('width', width)
+          .attr('height', height)
+          .attr('class', 'main');
 
   const xAxis = d3.axisBottom(x);
   main.append('g')
