@@ -728,7 +728,7 @@ export class TSNEOptimizer {
     const maxTextureDiameter = 5000;
     const textureDiameter = Math.min(
         Math.ceil(Math.max(maxSpace / spacePerPixel, 5)), maxTextureDiameter);
-    console.log(textureDiameter);
+
     const percChange = Math.abs(this.splatTextureDiameter - textureDiameter) /
                        this.splatTextureDiameter;
 

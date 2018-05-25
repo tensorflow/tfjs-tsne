@@ -138,6 +138,19 @@ export class TSNE {
 
     this.optimizer.exaggeration = exaggerationPolyline;
     this.optimizer.momentum = momentum;
+
+    // We set a large step size (ETA) for large embeddings and we descrese it
+    // for small embeddings.
+    const maximumEta = 2500;
+    const minimumEta = 250;
+    const numPointsMaximumEta = 2000;
+    if (this.numPoints > numPointsMaximumEta) {
+      this.optimizer.eta = maximumEta;
+    } else {
+      this.optimizer.eta =
+          minimumEta +
+          (maximumEta - minimumEta) * (this.numPoints / numPointsMaximumEta);
+    }
   }
 
   async compute(iterations = 1000): Promise<void> {
