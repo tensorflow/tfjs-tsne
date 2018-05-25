@@ -24,11 +24,11 @@ import * as tsne_util from './tsne_optimizer_util';
 
 export class TSNEOptimizer {
   // Interactive parameters
-  private _eta: number;  // used as uniform in the shaders
+  private _eta: number; // used as uniform in the shaders
   private _momentum: tf.Scalar;
   private _exaggeration: tf.Scalar;
 
-  private rawExaggeration: number|Array<{iteration: number, value: number}>;
+  private rawExaggeration: number|Array<{iteration : number, value: number}>;
 
   private verbose: boolean;
 
@@ -73,40 +73,22 @@ export class TSNEOptimizer {
   ////////////////////////////////
 
   // getters
-  get minX(): number {
-    return this._minX;
-  }
-  get maxX(): number {
-    return this._maxX;
-  }
-  get minY(): number {
-    return this._minY;
-  }
-  get maxY(): number {
-    return this._maxY;
-  }
-  get iteration(): number {
-    return this._iteration;
-  }
-  get numberOfPoints() {
-    return this.numPoints;
-  }
-  get numberOfPointsPerRow() {
-    return this.pointsPerRow;
-  }
-  get numberOfRows() {
-    return this.numRows;
-  }
-  get embeddingCoordinates() {
-    return this.embedding;
-  }
+  get minX(): number { return this._minX; }
+  get maxX(): number { return this._maxX; }
+  get minY(): number { return this._minY; }
+  get maxY(): number { return this._maxY; }
+  get iteration(): number { return this._iteration; }
+  get numberOfPoints() { return this.numPoints; }
+  get numberOfPointsPerRow() { return this.pointsPerRow; }
+  get numberOfRows() { return this.numRows; }
+  get embeddingCoordinates() { return this.embedding; }
 
   get embedding2D(): tf.Tensor {
     const result = tf.tidy(() => {
       // 2d tensor with some extra points
       const reshaped =
-          this.embedding.reshape([this.numRows * this.pointsPerRow, 2])
-              .slice([0, 0], [this.numPoints, 2]);
+          this.embedding.reshape([ this.numRows * this.pointsPerRow, 2 ])
+              .slice([ 0, 0 ], [ this.numPoints, 2 ]);
       return reshaped;
     });
     return result;
@@ -115,21 +97,17 @@ export class TSNEOptimizer {
   get embeddingTexture() {
     return this.backend.getTexture(this.embedding.dataId);
   }
-  get splatTexture() {
-    return this._splatTexture;
-  }
-  get normalizationQ() {
-    return this._normQ;
-  }
+  get splatTexture() { return this._splatTexture; }
+  get normalizationQ() { return this._normQ; }
 
   // getters and settters for tSNE GD parameters
   get exaggerationAtCurrentIteration(): number {
     return this._exaggeration.get();
   }
-  get exaggeration(): number|Array<{iteration: number, value: number}> {
+  get exaggeration(): number|Array<{iteration : number, value: number}> {
     return this.rawExaggeration;
   }
-  set exaggeration(ex: number|Array<{iteration: number, value: number}>) {
+  set exaggeration(ex: number|Array<{iteration : number, value: number}>) {
     this.rawExaggeration = ex;
     if (typeof ex === 'number') {
       // Number
@@ -161,9 +139,7 @@ export class TSNEOptimizer {
     this.updateExaggeration();
   }
 
-  get momentum(): number {
-    return this._momentum.get();
-  }
+  get momentum(): number { return this._momentum.get(); }
   set momentum(mom: number) {
     if (mom < 0 || mom > 1) {
       throw Error('Momentum must be in the [0,1] range');
@@ -171,9 +147,7 @@ export class TSNEOptimizer {
     this._momentum.dispose();
     this._momentum = tf.scalar(mom);
   }
-  get eta(): number {
-    return this._eta;
-  }
+  get eta(): number { return this._eta; }
   set eta(eta: number) {
     if (eta <= 0) {
       throw Error('ETA must be greater then zero');
@@ -185,9 +159,8 @@ export class TSNEOptimizer {
   ///// PUBLIC INTERFACE  ////////
   ////////////////////////////////
 
-  constructor(
-      numPoints: number, verbose?: boolean, splatTextureDiameter?: number,
-      kernelTextureRadius?: number) {
+  constructor(numPoints: number, verbose?: boolean,
+              splatTextureDiameter?: number, kernelTextureRadius?: number) {
     if (verbose != null) {
       this.verbose = verbose;
     } else {
@@ -211,8 +184,8 @@ export class TSNEOptimizer {
     this.gpgpu = this.backend.getGPGPUContext();
 
     // Check for the float interpolation extension
-    tf.webgl.webgl_util.getExtensionOrThrow(
-        this.gpgpu.gl, 'OES_texture_float_linear');
+    tf.webgl.webgl_util.getExtensionOrThrow(this.gpgpu.gl,
+                                            'OES_texture_float_linear');
 
     // The points are organized as xyxyxy... with a pixel per dimension
     // The resulting texture are almost squared to avoid precision problems
@@ -230,7 +203,7 @@ export class TSNEOptimizer {
     this._eta = 2500;
     this._momentum = tf.scalar(0.8);
     this.rawExaggeration =
-        [{iteration: 200, value: 4}, {iteration: 600, value: 1}];
+        [ {iteration : 200, value : 4}, {iteration : 600, value : 1} ];
     this.updateExaggeration();
 
     // Initialization of the splat textures used for the computation
@@ -299,12 +272,12 @@ export class TSNEOptimizer {
     }
 
     // Previous gradients are set to zero
-    this.gradient = tf.zeros([this.numRows, this.pointsPerRow * 2]);
+    this.gradient = tf.zeros([ this.numRows, this.pointsPerRow * 2 ]);
 
     this.embedding = tf.tidy(() => {
       const randomData =
-          tf.randomUniform([this.numRows, this.pointsPerRow * 2]);
-      const embedding = tf.zeros([this.numRows, this.pointsPerRow * 2]);
+          tf.randomUniform([ this.numRows, this.pointsPerRow * 2 ]);
+      const embedding = tf.zeros([ this.numRows, this.pointsPerRow * 2 ]);
       this.initializeEmbeddingPositions(embedding, randomData);
       return embedding;
     });
@@ -319,24 +292,23 @@ export class TSNEOptimizer {
   }
 
   // Defines the neighborhood relationships between the points
-  initializeNeighbors(
-      numNeighPerRow: number, offsets: WebGLTexture,
-      probabilities: WebGLTexture, neighIds: WebGLTexture) {
+  initializeNeighbors(numNeighPerRow: number, offsets: WebGLTexture,
+                      probabilities: WebGLTexture, neighIds: WebGLTexture) {
     this.numNeighPerRow = numNeighPerRow;
     this.probOffsetTexture = offsets;
     this.probTexture = probabilities;
     this.probNeighIdTexture = neighIds;
   }
 
-  async initializeNeighborsFromKNNGraph(
-      numPoints: number, numNeighbors: number, distances: Float32Array,
-      indices: Uint32Array): Promise<void> {
+  async initializeNeighborsFromKNNGraph(numPoints: number, numNeighbors: number,
+                                        distances: Float32Array,
+                                        indices: Uint32Array): Promise<void> {
     // Computing the shape of the knnGraphTexture
     const pointsPerRow =
         Math.floor(Math.sqrt(numPoints * numNeighbors) / numNeighbors);
     const numRows = Math.ceil(numPoints / pointsPerRow);
     const dataShape =
-        {numPoints, pixelsPerPoint: numNeighbors, numRows, pointsPerRow};
+        {numPoints, pixelsPerPoint : numNeighbors, numRows, pointsPerRow};
 
     // Indices and distances are packed in a 2-channel texture
     const textureValues =
@@ -361,13 +333,13 @@ export class TSNEOptimizer {
   }
 
   // Defines the neighborhood relationships between the points
-  async initializeNeighborsFromKNNTexture(
-      shape: RearrangedData, knnGraph: WebGLTexture): Promise<void> {
+  async initializeNeighborsFromKNNTexture(shape: RearrangedData,
+                                          knnGraph: WebGLTexture):
+      Promise<void> {
     this.log('Asymmetric neighborhood initialization...');
     if (shape.numPoints !== this.numPoints) {
-      throw new Error(
-          `KNN size and number of points must agree` +
-          `(${shape.numPoints},${this.numPoints})`);
+      throw new Error(`KNN size and number of points must agree` +
+                      `(${shape.numPoints},${this.numPoints})`);
     }
 
     // contains the beta and the sum of the gaussian weighted vector
@@ -377,20 +349,20 @@ export class TSNEOptimizer {
 
     // contains the per-point probability vectors
     const gaussianDistributions =
-        tf.zeros([shape.numRows, shape.pointsPerRow * shape.pixelsPerPoint]);
+        tf.zeros([ shape.numRows, shape.pointsPerRow * shape.pixelsPerPoint ]);
 
     const perplexity = shape.pixelsPerPoint / 3;
     // Computation of the per-point probability vectors
-    this.computeDistributionParameters(
-        distributionParameters, shape, perplexity, knnGraph);
-    this.computeGaussianDistributions(
-        gaussianDistributions, distributionParameters, shape, knnGraph);
+    this.computeDistributionParameters(distributionParameters, shape,
+                                       perplexity, knnGraph);
+    this.computeGaussianDistributions(gaussianDistributions,
+                                      distributionParameters, shape, knnGraph);
     const gaussianDistributionsData = await gaussianDistributions.data();
     this.log('Gaussian distributions', gaussianDistributions);
 
     // Contains the per-point probability vectors
     const knnIndices =
-        tf.zeros([shape.numRows, shape.pointsPerRow * shape.pixelsPerPoint]);
+        tf.zeros([ shape.numRows, shape.pointsPerRow * shape.pixelsPerPoint ]);
     // Computation of the per-point probability vectors
     const copyIndicesProgram = knn_util.createCopyIndicesProgram(this.gpgpu);
     knn_util.executeCopyIndicesProgram(
@@ -421,7 +393,7 @@ export class TSNEOptimizer {
     }
     for (let i = 1; i < shape.numPoints; ++i) {
       neighborLinearOffset[i] = neighborLinearOffset[i - 1] +
-          neighborCounter[i - 1] + shape.pixelsPerPoint;
+                                neighborCounter[i - 1] + shape.pixelsPerPoint;
     }
     this.log('Counter', neighborCounter);
     this.log('Linear offset', neighborLinearOffset);
@@ -478,9 +450,10 @@ export class TSNEOptimizer {
           const probability = gaussianDistributionsData[linearId];
 
           const symMatrixDirectId = neighborLinearOffset[i] + n;
-          const symMatrixIndirectId = neighborLinearOffset[pointId] +  // offset
-              shape.pixelsPerPoint +             // num of direct neighbors
-              assignedNeighborCounter[pointId];  // num of indirect
+          const symMatrixIndirectId =
+              neighborLinearOffset[pointId] +   // offset
+              shape.pixelsPerPoint +            // num of direct neighbors
+              assignedNeighborCounter[pointId]; // num of indirect
 
           // neighbors assigned so far
           probabilities[symMatrixDirectId] = probability;
@@ -569,8 +542,8 @@ export class TSNEOptimizer {
       this.splatPoints();
 
       // 2) compute interpolation of the scalar fields
-      const interpQ = tf.zeros([this.numRows, this.pointsPerRow]);
-      const interpXY = tf.zeros([this.numRows, this.pointsPerRow * 2]);
+      const interpQ = tf.zeros([ this.numRows, this.pointsPerRow ]);
+      const interpXY = tf.zeros([ this.numRows, this.pointsPerRow * 2 ]);
       this.computeInterpolatedQ(interpQ);
       this.computeInterpolatedXY(interpXY);
 
@@ -581,7 +554,8 @@ export class TSNEOptimizer {
       const repulsiveForces = interpXY.div(normQ);
 
       // 5) compute the attracive forces
-      const attractiveForces = tf.zeros([this.numRows, this.pointsPerRow * 2]);
+      const attractiveForces =
+          tf.zeros([ this.numRows, this.pointsPerRow * 2 ]);
       this.computeAttractiveForces(attractiveForces);
 
       // 6) compute the gradient
@@ -590,7 +564,7 @@ export class TSNEOptimizer {
       const gradient = this.gradient.mul(this._momentum).sub(gradientIter);
 
       this.gradient.dispose();
-      return [gradient, normQ];
+      return [ gradient, normQ ];
     });
 
     this._normQ = (await normQ.data())[0];
@@ -640,8 +614,8 @@ export class TSNEOptimizer {
     // Third channel  - (1/(1+d^2))^2*d[y]
     // Fourth channel - 1 (extra for counting)
     this.kernelSupport = 2.5;
-    const kernel = new Float32Array(
-        this.kernelTextureDiameter * this.kernelTextureDiameter * 4);
+    const kernel = new Float32Array(this.kernelTextureDiameter *
+                                    this.kernelTextureDiameter * 4);
 
     // Computation of the tSNE splat kernel
     const kernelRadius = Math.floor(this.kernelTextureDiameter / 2);
@@ -720,12 +694,12 @@ export class TSNEOptimizer {
     const [min, max] = tf.tidy(() => {
       // 2d tensor with some extra points
       const embedding2D =
-          this.embedding.reshape([this.numRows * this.pointsPerRow, 2])
-              .slice([0, 0], [this.numPoints, 2]);
+          this.embedding.reshape([ this.numRows * this.pointsPerRow, 2 ])
+              .slice([ 0, 0 ], [ this.numPoints, 2 ]);
 
       const min = embedding2D.min(0);
       const max = embedding2D.max(0);
-      return [min, max];
+      return [ min, max ];
     });
 
     // TODO clean up the code
@@ -748,10 +722,15 @@ export class TSNEOptimizer {
   private updateSplatTextureDiameter() {
     const maxSpace = Math.max(this._maxX - this._minX, this._maxY - this._minY);
     const spacePerPixel = 0.35;
-    const textureDiameter = Math.ceil(Math.max(maxSpace / spacePerPixel, 5));
+    // The maximum texture diameter is limited to 5k pixels
+    // It is big enough to contain any reasonable sized embedding, while avoids
+    // being too large due to instable points during the optimization
+    const maxTextureDiameter = 5000;
+    const textureDiameter = Math.min(
+        Math.ceil(Math.max(maxSpace / spacePerPixel, 5)), maxTextureDiameter);
 
     const percChange = Math.abs(this.splatTextureDiameter - textureDiameter) /
-        this.splatTextureDiameter;
+                       this.splatTextureDiameter;
 
     if (percChange >= 0.2) {
       this.log('Updating splat-texture diameter', textureDiameter);
@@ -763,8 +742,8 @@ export class TSNEOptimizer {
     }
   }
 
-  private initializeEmbeddingPositions(
-      embedding: tf.Tensor, random: tf.Tensor) {
+  private initializeEmbeddingPositions(embedding: tf.Tensor,
+                                       random: tf.Tensor) {
     tsne_util.executeEmbeddingInitializationProgram(
         this.gpgpu, this.embeddingInitializationProgram,
         this.backend.getTexture(random.dataId), this.numPoints,
@@ -807,18 +786,20 @@ export class TSNEOptimizer {
         this.backend.getTexture(attractiveForces.dataId));
   }
 
-  private computeDistributionParameters(
-      distributionParameters: WebGLTexture, shape: RearrangedData,
-      perplexity: number, knnGraph: WebGLTexture) {
+  private computeDistributionParameters(distributionParameters: WebGLTexture,
+                                        shape: RearrangedData,
+                                        perplexity: number,
+                                        knnGraph: WebGLTexture) {
     tsne_util.executeDistributionParametersComputationProgram(
         this.gpgpu, this.distributionParameterssComputationProgram, knnGraph,
         shape.numPoints, shape.pixelsPerPoint, shape.pointsPerRow,
         shape.numRows, perplexity, distributionParameters);
   }
 
-  private computeGaussianDistributions(
-      distributions: tf.Tensor, distributionParameters: WebGLTexture,
-      shape: RearrangedData, knnGraph: WebGLTexture) {
+  private computeGaussianDistributions(distributions: tf.Tensor,
+                                       distributionParameters: WebGLTexture,
+                                       shape: RearrangedData,
+                                       knnGraph: WebGLTexture) {
     tsne_util.executeGaussiaDistributionsFromDistancesProgram(
         this.gpgpu, this.gaussiaDistributionsFromDistancesProgram, knnGraph,
         distributionParameters, shape.numPoints, shape.pixelsPerPoint,
