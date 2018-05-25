@@ -62,6 +62,7 @@ export class KNNEstimator {
 
   get knnShape(): RearrangedData { return this.knnDataShape; }
   get iteration() { return this._iteration; }
+  get pointsPerIteration() { return 20; }
 
   constructor(dataTexture: WebGLTexture,
               dataFormat: RearrangedData|CustomDataDefinition,
@@ -116,8 +117,6 @@ export class KNNEstimator {
     this.initializeTextures();
     this.initilizeCustomWebGLPrograms(distanceComputationSource);
   }
-
-  get pointsPerIteration() { return 20; }
 
   // Utility function for printing stuff
   // tslint:disable-next-line:no-any
@@ -219,7 +218,7 @@ export class KNNEstimator {
 
   distancesTensor(): tf.Tensor {
     return tf.tidy(() => {
-      let distances = tf.zeros([
+      const distances = tf.zeros([
         this.knnDataShape.numRows,
         this.knnDataShape.pointsPerRow * this.knnDataShape.pixelsPerPoint
       ]);
@@ -227,23 +226,21 @@ export class KNNEstimator {
       knn_util.executeCopyDistancesProgram(
           this.gpgpu, this.copyDistancesProgram, knnTexture, this.knnDataShape,
           this.backend.getTexture(distances.dataId));
-      // Reshape & Slice
-      distances =
-          distances
-              .reshape([
-                this.knnDataShape.numRows * this.knnDataShape.pointsPerRow,
-                this.knnDataShape.pixelsPerPoint
-              ])
-              .slice([ 0, 0 ], [
-                this.knnDataShape.numPoints, this.knnDataShape.pixelsPerPoint
-              ]);
-      return distances;
+
+      return distances
+          .reshape([
+            this.knnDataShape.numRows * this.knnDataShape.pointsPerRow,
+            this.knnDataShape.pixelsPerPoint
+          ])
+          .slice([ 0, 0 ], [
+            this.knnDataShape.numPoints, this.knnDataShape.pixelsPerPoint
+          ]);
     });
   }
 
   indicesTensor(): tf.Tensor {
     return tf.tidy(() => {
-      let indices = tf.zeros([
+      const indices = tf.zeros([
         this.knnDataShape.numRows,
         this.knnDataShape.pointsPerRow * this.knnDataShape.pixelsPerPoint
       ]);
@@ -251,17 +248,15 @@ export class KNNEstimator {
       knn_util.executeCopyIndicesProgram(
           this.gpgpu, this.copyIndicesProgram, knnTexture, this.knnDataShape,
           this.backend.getTexture(indices.dataId));
-      // Reshape & Slice
-      indices =
-          indices
-              .reshape([
-                this.knnDataShape.numRows * this.knnDataShape.pointsPerRow,
-                this.knnDataShape.pixelsPerPoint
-              ])
-              .slice([ 0, 0 ], [
-                this.knnDataShape.numPoints, this.knnDataShape.pixelsPerPoint
-              ]);
-      return indices;
+
+      return indices
+          .reshape([
+            this.knnDataShape.numRows * this.knnDataShape.pointsPerRow,
+            this.knnDataShape.pixelsPerPoint
+          ])
+          .slice([ 0, 0 ], [
+            this.knnDataShape.numPoints, this.knnDataShape.pixelsPerPoint
+          ]);
     });
   }
 

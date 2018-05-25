@@ -29,7 +29,7 @@ export interface TSNEConfiguration {
   exaggerationDecayIter?: number; // Default: 200
   momentum?: number;              // Default: 0.8
   verbose?: boolean;              // Default: false
-  knnMode: 'auto'|'bruteForce'|'kNNDescentProgram'|'random';
+  knnMode: 'auto'|'bruteForce';
   // Default: auto
 }
 
@@ -142,7 +142,7 @@ export class TSNE {
     this.optimizer.exaggeration = exaggerationPolyline;
     this.optimizer.momentum = momentum;
 
-    // We set a large step size (ETA) for large embeddings and we descrese it
+    // We set a large step size (ETA) for large embeddings and we decrease it
     // for small embeddings.
     const maximumEta = 2500;
     const minimumEta = 250;
@@ -179,8 +179,7 @@ export class TSNE {
   }
 
   /**
-   * Compute a number of iterations for computing the k-nearest neighborhood
-   * graph
+   * Run k-nearest neighborhood computation for a given number of iterations
    * @param {number} iterations Number of iterations to compute. Default = 1
    */
   async iterateKnn(iterations = 1): Promise<void> {
@@ -197,7 +196,7 @@ export class TSNE {
   }
 
   /**
-   * Compute a number of tSNE iterations
+   * Run tSNE computation for a given number of iterations
    * @param {number} iterations Number of iterations to compute. Default = 1
    */
   async iterate(iterations = 1): Promise<void> {
@@ -252,8 +251,7 @@ export class TSNE {
 
   /**
    * Return the cumulative distance in the KNN graph.
-   * It can be used to show the evolution of the of the KNN graph over time but
-   * it can be expensive
+   * It can be used to show how fast the KNN graph converges to the solution
    */
   async knnTotalDistance(): Promise<number> {
     const sum = tf.tidy(() => {
