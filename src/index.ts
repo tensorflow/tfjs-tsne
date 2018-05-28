@@ -16,12 +16,11 @@
  */
 
 import * as dataset_util from './dataset_util';
-import {EmbeddingDrawer} from './drawer';
 import * as gl_util from './gl_util';
 import {KNNEstimator} from './knn';
 import {tsne} from './tsne';
 import {TSNEOptimizer} from './tsne_optimizer';
 
-export {EmbeddingDrawer, KNNEstimator, tsne, TSNEOptimizer};
+export {KNNEstimator, tsne, TSNEOptimizer};
 export {gl_util as gl_util};
 export {dataset_util as dataset_util};
