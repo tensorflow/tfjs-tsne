@@ -152,12 +152,13 @@ Above a certain number of data points the computation of the similarities become
 
 
 ### Implementation
-This work makes use of [linear tSNE optimization](https://arxiv) for the optimization of the embedding and an optimized brute force computation of the kNN graph in the GPU.
+This work makes use of [linear tSNE optimization](https://arxiv.org/abs/1805.10817) for the optimization of the embedding and an optimized brute force computation of the kNN graph in the GPU.
 
 ### Reference
 Reference to cite if you use this implementation in a research paper:
-```Bibtex
-@article{TFjsTSNE,
+
+```
+@article{TFjs:tSNE,
   author = {Nicola Pezzotti and Alexander Mordvintsev and Thomas Hollt and Boudewijn P. F. Lelieveldt and Elmar Eisemann and Anna Vilanova},
   title = {Linear tSNE Optimization for the Web},
   year = {2018},
