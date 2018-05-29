@@ -2,7 +2,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@tensorflow/tfjs-core')) :
   typeof define === 'function' && define.amd ? define(['exports', '@tensorflow/tfjs-core'], factory) :
-  (factory((global.tfjs_tsne = {}),global.tf));
+  (factory((global.tsne = {}),global.tf));
 }(this, (function (exports,tf) { 'use strict';
 
   function createVertexProgram(gl, vertexShaderSource, fragmentShaderSource) {
@@ -592,23 +592,17 @@
           this.initilizeCustomWebGLPrograms(distanceComputationSource);
       }
       Object.defineProperty(KNNEstimator.prototype, "knnShape", {
-          get: function () {
-              return this.knnDataShape;
-          },
+          get: function () { return this.knnDataShape; },
           enumerable: true,
           configurable: true
       });
       Object.defineProperty(KNNEstimator.prototype, "iteration", {
-          get: function () {
-              return this._iteration;
-          },
+          get: function () { return this._iteration; },
           enumerable: true,
           configurable: true
       });
       Object.defineProperty(KNNEstimator.prototype, "pointsPerIteration", {
-          get: function () {
-              return 20;
-          },
+          get: function () { return 20; },
           enumerable: true,
           configurable: true
       });
@@ -623,7 +617,8 @@
           }
       };
       KNNEstimator.prototype.initializeTextures = function () {
-          var initNeigh = new Float32Array(this.knnDataShape.pointsPerRow * this.knnDataShape.pixelsPerPoint * 2 *
+          var initNeigh = new Float32Array(this.knnDataShape.pointsPerRow *
+              this.knnDataShape.pixelsPerPoint * 2 *
               this.knnDataShape.numRows);
           var numNeighs = this.knnDataShape.pixelsPerPoint;
           for (var i = 0; i < this.knnDataShape.numPoints; ++i) {
@@ -696,7 +691,14 @@
               ]);
               var knnTexture = _this.knn();
               executeCopyDistancesProgram(_this.gpgpu, _this.copyDistancesProgram, knnTexture, _this.knnDataShape, _this.backend.getTexture(distances.dataId));
-              return distances;
+              return distances
+                  .reshape([
+                  _this.knnDataShape.numRows * _this.knnDataShape.pointsPerRow,
+                  _this.knnDataShape.pixelsPerPoint
+              ])
+                  .slice([0, 0], [
+                  _this.knnDataShape.numPoints, _this.knnDataShape.pixelsPerPoint
+              ]);
           });
       };
       KNNEstimator.prototype.indicesTensor = function () {
@@ -708,7 +710,14 @@
               ]);
               var knnTexture = _this.knn();
               executeCopyIndicesProgram(_this.gpgpu, _this.copyIndicesProgram, knnTexture, _this.knnDataShape, _this.backend.getTexture(indices.dataId));
-              return indices;
+              return indices
+                  .reshape([
+                  _this.knnDataShape.numRows * _this.knnDataShape.pointsPerRow,
+                  _this.knnDataShape.pixelsPerPoint
+              ])
+                  .slice([0, 0], [
+                  _this.knnDataShape.numPoints, _this.knnDataShape.pixelsPerPoint
+              ]);
           });
       };
       KNNEstimator.prototype.iterateGPU = function (dataTexture, _iteration, startingKNNTexture, targetTexture) {
@@ -1074,65 +1083,47 @@
           this.log('\tGradient', this.gradient);
       }
       Object.defineProperty(TSNEOptimizer.prototype, "minX", {
-          get: function () {
-              return this._minX;
-          },
+          get: function () { return this._minX; },
           enumerable: true,
           configurable: true
       });
       Object.defineProperty(TSNEOptimizer.prototype, "maxX", {
-          get: function () {
-              return this._maxX;
-          },
+          get: function () { return this._maxX; },
           enumerable: true,
           configurable: true
       });
       Object.defineProperty(TSNEOptimizer.prototype, "minY", {
-          get: function () {
-              return this._minY;
-          },
+          get: function () { return this._minY; },
           enumerable: true,
           configurable: true
       });
       Object.defineProperty(TSNEOptimizer.prototype, "maxY", {
-          get: function () {
-              return this._maxY;
-          },
+          get: function () { return this._maxY; },
           enumerable: true,
           configurable: true
       });
       Object.defineProperty(TSNEOptimizer.prototype, "iteration", {
-          get: function () {
-              return this._iteration;
-          },
+          get: function () { return this._iteration; },
           enumerable: true,
           configurable: true
       });
       Object.defineProperty(TSNEOptimizer.prototype, "numberOfPoints", {
-          get: function () {
-              return this.numPoints;
-          },
+          get: function () { return this.numPoints; },
           enumerable: true,
           configurable: true
       });
       Object.defineProperty(TSNEOptimizer.prototype, "numberOfPointsPerRow", {
-          get: function () {
-              return this.pointsPerRow;
-          },
+          get: function () { return this.pointsPerRow; },
           enumerable: true,
           configurable: true
       });
       Object.defineProperty(TSNEOptimizer.prototype, "numberOfRows", {
-          get: function () {
-              return this.numRows;
-          },
+          get: function () { return this.numRows; },
           enumerable: true,
           configurable: true
       });
       Object.defineProperty(TSNEOptimizer.prototype, "embeddingCoordinates", {
-          get: function () {
-              return this.embedding;
-          },
+          get: function () { return this.embedding; },
           enumerable: true,
           configurable: true
       });
@@ -1157,16 +1148,12 @@
           configurable: true
       });
       Object.defineProperty(TSNEOptimizer.prototype, "splatTexture", {
-          get: function () {
-              return this._splatTexture;
-          },
+          get: function () { return this._splatTexture; },
           enumerable: true,
           configurable: true
       });
       Object.defineProperty(TSNEOptimizer.prototype, "normalizationQ", {
-          get: function () {
-              return this._normQ;
-          },
+          get: function () { return this._normQ; },
           enumerable: true,
           configurable: true
       });
@@ -1214,9 +1201,7 @@
           configurable: true
       });
       Object.defineProperty(TSNEOptimizer.prototype, "momentum", {
-          get: function () {
-              return this._momentum.get();
-          },
+          get: function () { return this._momentum.get(); },
           set: function (mom) {
               if (mom < 0 || mom > 1) {
                   throw Error('Momentum must be in the [0,1] range');
@@ -1228,9 +1213,7 @@
           configurable: true
       });
       Object.defineProperty(TSNEOptimizer.prototype, "eta", {
-          get: function () {
-              return this._eta;
-          },
+          get: function () { return this._eta; },
           set: function (eta) {
               if (eta <= 0) {
                   throw Error('ETA must be greater then zero');
@@ -1529,7 +1512,8 @@
       TSNEOptimizer.prototype.initializeRepulsiveForceTextures = function () {
           this._splatTexture = createAndConfigureInterpolatedTexture(this.gpgpu.gl, this.splatTextureDiameter, this.splatTextureDiameter, 4, null);
           this.kernelSupport = 2.5;
-          var kernel = new Float32Array(this.kernelTextureDiameter * this.kernelTextureDiameter * 4);
+          var kernel = new Float32Array(this.kernelTextureDiameter *
+              this.kernelTextureDiameter * 4);
           var kernelRadius = Math.floor(this.kernelTextureDiameter / 2);
           var j = 0;
           var i = 0;
@@ -1626,7 +1610,8 @@
       TSNEOptimizer.prototype.updateSplatTextureDiameter = function () {
           var maxSpace = Math.max(this._maxX - this._minX, this._maxY - this._minY);
           var spacePerPixel = 0.35;
-          var textureDiameter = Math.ceil(Math.max(maxSpace / spacePerPixel, 5));
+          var maxTextureDiameter = 5000;
+          var textureDiameter = Math.min(Math.ceil(Math.max(maxSpace / spacePerPixel, 5)), maxTextureDiameter);
           var percChange = Math.abs(this.splatTextureDiameter - textureDiameter) /
               this.splatTextureDiameter;
           if (percChange >= 0.2) {
@@ -1675,11 +1660,10 @@
           if (inputShape.length !== 2) {
               throw Error('computeTSNE: input tensor must be 2-dimensional');
           }
-          console.log(this.knnMode);
       }
       TSNE.prototype.initialize = function () {
           return __awaiter(this, void 0, void 0, function () {
-              var perplexity, exaggeration, exaggerationIter, exaggerationDecayIter, momentum, _a, exaggerationPolyline;
+              var perplexity, exaggeration, exaggerationIter, exaggerationDecayIter, momentum, _a, exaggerationPolyline, maximumEta, minimumEta, numPointsMaximumEta;
               return __generator(this, function (_b) {
                   switch (_b.label) {
                       case 0:
@@ -1721,10 +1705,11 @@
                           return [4, tensorToDataTexture(this.data)];
                       case 1:
                           _a.packedData = _b.sent();
-                          if (this.verbose === true) {
-                              console.log("Number of points " + this.numPoints);
-                              console.log("Number of dimensions " + this.numDimensions);
-                              console.log("Number of neighbors " + this.numNeighbors);
+                          if (this.verbose) {
+                              console.log("Number of points:\t" + this.numPoints);
+                              console.log("Number of dimensions:\t " + this.numDimensions);
+                              console.log("Number of neighbors:\t" + this.numNeighbors);
+                              console.log("kNN mode:\t" + this.knnMode);
                           }
                           this.knnEstimator = new KNNEstimator(this.packedData.texture, this.packedData.shape, this.numPoints, this.numDimensions, this.numNeighbors, false);
                           this.optimizer = new TSNEOptimizer(this.numPoints, false);
@@ -1732,19 +1717,30 @@
                               { iteration: exaggerationIter, value: exaggeration },
                               { iteration: exaggerationIter + exaggerationDecayIter, value: 1 }
                           ];
-                          if (this.verbose === true) {
+                          if (this.verbose) {
                               console.log("Exaggerating for " + exaggerationPolyline[0].iteration + " " +
                                   ("iterations with a value of " + exaggerationPolyline[0].value + ". ") +
                                   ("Exaggeration is removed after " + exaggerationPolyline[1].iteration + "."));
                           }
                           this.optimizer.exaggeration = exaggerationPolyline;
                           this.optimizer.momentum = momentum;
+                          maximumEta = 2500;
+                          minimumEta = 250;
+                          numPointsMaximumEta = 2000;
+                          if (this.numPoints > numPointsMaximumEta) {
+                              this.optimizer.eta = maximumEta;
+                          }
+                          else {
+                              this.optimizer.eta = minimumEta +
+                                  (maximumEta - minimumEta) * (this.numPoints / numPointsMaximumEta);
+                          }
                           return [2];
                   }
               });
           });
       };
       TSNE.prototype.compute = function (iterations) {
+          if (iterations === void 0) { iterations = 1000; }
           return __awaiter(this, void 0, void 0, function () {
               var knnIter;
               return __generator(this, function (_a) {
@@ -1773,12 +1769,13 @@
           });
       };
       TSNE.prototype.iterateKnn = function (iterations) {
+          if (iterations === void 0) { iterations = 1; }
           return __awaiter(this, void 0, void 0, function () {
               var iter;
               return __generator(this, function (_a) {
                   switch (_a.label) {
                       case 0:
-                          if (!(this.initialized === false)) return [3, 2];
+                          if (!!this.initialized) return [3, 2];
                           return [4, this.initialize()];
                       case 1:
                           _a.sent();
@@ -1787,22 +1784,23 @@
                           this.probabilitiesInitialized = false;
                           for (iter = 0; iter < iterations; ++iter) {
                               this.knnEstimator.iterateBruteForce();
-                              if ((this.knnEstimator.iteration % 100) === 0 && this.verbose === true) {
+                              if ((this.knnEstimator.iteration % 100) === 0 && this.verbose) {
                                   console.log("Iteration KNN:\t" + this.knnEstimator.iteration);
                               }
                           }
-                          return [2, true];
+                          return [2];
                   }
               });
           });
       };
       TSNE.prototype.iterate = function (iterations) {
+          if (iterations === void 0) { iterations = 1; }
           return __awaiter(this, void 0, void 0, function () {
               var iter;
               return __generator(this, function (_a) {
                   switch (_a.label) {
                       case 0:
-                          if (!(this.probabilitiesInitialized === false)) return [3, 2];
+                          if (!!this.probabilitiesInitialized) return [3, 2];
                           return [4, this.initializeProbabilities()];
                       case 1:
                           _a.sent();
@@ -1815,7 +1813,7 @@
                           return [4, this.optimizer.iterate()];
                       case 4:
                           _a.sent();
-                          if ((this.optimizer.iteration % 100) === 0 && this.verbose === true) {
+                          if ((this.optimizer.iteration % 100) === 0 && this.verbose) {
                               console.log("Iteration tSNE:\t" + this.optimizer.iteration);
                           }
                           _a.label = 5;
@@ -1830,18 +1828,73 @@
       TSNE.prototype.knnIterations = function () {
           return Math.ceil(this.numPoints / 20);
       };
-      TSNE.prototype.coordinates = function () {
-          return this.optimizer.embedding2D;
+      TSNE.prototype.coordinates = function (normalized) {
+          var _this = this;
+          if (normalized === void 0) { normalized = true; }
+          if (normalized) {
+              return tf.tidy(function () {
+                  var rangeX = _this.optimizer.maxX - _this.optimizer.minX;
+                  var rangeY = _this.optimizer.maxY - _this.optimizer.minY;
+                  var min = tf.tensor2d([_this.optimizer.minX, _this.optimizer.minY], [1, 2]);
+                  var max = tf.tensor2d([_this.optimizer.maxX, _this.optimizer.maxY], [1, 2]);
+                  var range = max.sub(min);
+                  var maxRange = tf.max(range);
+                  var offset = tf.tidy(function () {
+                      if (rangeX < rangeY) {
+                          return tf.tensor2d([(rangeY - rangeX) / 2, 0], [1, 2]);
+                      }
+                      else {
+                          return tf.tensor2d([0, (rangeX - rangeY) / 2], [1, 2]);
+                      }
+                  });
+                  return _this.optimizer.embedding2D.sub(min).add(offset).div(maxRange);
+              });
+          }
+          else {
+              return this.optimizer.embedding2D;
+          }
       };
-      TSNE.prototype.knnDistance = function () {
-          return 0;
+      TSNE.prototype.coordsArray = function (normalized) {
+          if (normalized === void 0) { normalized = true; }
+          return __awaiter(this, void 0, void 0, function () {
+              var coordsData, coords, i;
+              return __generator(this, function (_a) {
+                  switch (_a.label) {
+                      case 0: return [4, this.coordinates(normalized).data()];
+                      case 1:
+                          coordsData = _a.sent();
+                          coords = [];
+                          for (i = 0; i < coordsData.length; i += 2) {
+                              coords.push([coordsData[i], coordsData[i + 1]]);
+                          }
+                          return [2, coords];
+                  }
+              });
+          });
+      };
+      TSNE.prototype.knnTotalDistance = function () {
+          return __awaiter(this, void 0, void 0, function () {
+              var _this = this;
+              var sum;
+              return __generator(this, function (_a) {
+                  switch (_a.label) {
+                      case 0:
+                          sum = tf.tidy(function () {
+                              var distanceTensor = _this.knnEstimator.distancesTensor();
+                              return distanceTensor.sum();
+                          });
+                          return [4, sum.data()];
+                      case 1: return [2, (_a.sent())[0]];
+                  }
+              });
+          });
       };
       TSNE.prototype.initializeProbabilities = function () {
           return __awaiter(this, void 0, void 0, function () {
               return __generator(this, function (_a) {
                   switch (_a.label) {
                       case 0:
-                          if (this.verbose === true) {
+                          if (this.verbose) {
                               console.log("Initializing probabilities");
                           }
                           return [4, this.optimizer.initializeNeighborsFromKNNTexture(this.knnEstimator.knnShape, this.knnEstimator.knn())];

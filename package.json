@@ -4,8 +4,8 @@
   "description": "TensorFlow.js powered tSNE implementation",
   "private": true,
   "main": "dist/index.js",
-  "jsdelivr": "dist/tf-tsne.min.js",
-  "unpkg": "dist/tf-tsne.min.js",
+  "jsdelivr": "dist/tsne.min.js",
+  "unpkg": "dist/tsne.min.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
     "@tensorflow/tfjs-core": "^0.10.1",

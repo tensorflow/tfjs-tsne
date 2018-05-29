@@ -23,16 +23,22 @@ import {tensorToDataTexture} from './tensor_to_data_texture';
 import {TSNEOptimizer} from './tsne_optimizer';
 
 export interface TSNEConfiguration {
-  perplexity?: number;            // Default: 30
-  exaggeration?: number;          // Default: 4
-  exaggerationIter?: number;      // Default: 300
-  exaggerationDecayIter?: number; // Default: 200
-  momentum?: number;              // Default: 0.8
-  verbose?: boolean;              // Default: false
+  perplexity?: number;             // Default: 30
+  exaggeration?: number;           // Default: 4
+  exaggerationIter?: number;       // Default: 300
+  exaggerationDecayIter?: number;  // Default: 200
+  momentum?: number;               // Default: 0.8
+  verbose?: boolean;               // Default: false
   knnMode: 'auto'|'bruteForce';
   // Default: auto
 }
 
+/**
+ * Creates and returns a new TSNE embedder.
+ *
+ * @param data Rank 2 tensor of data to embed
+ * @param config configuration options
+ */
 export function tsne(data: tf.Tensor, config?: TSNEConfiguration) {
   return new TSNE(data, config);
 }
@@ -127,8 +133,8 @@ export class TSNE {
 
     this.optimizer = new TSNEOptimizer(this.numPoints, false);
     const exaggerationPolyline = [
-      {iteration : exaggerationIter, value : exaggeration},
-      {iteration : exaggerationIter + exaggerationDecayIter, value : 1}
+      {iteration: exaggerationIter, value: exaggeration},
+      {iteration: exaggerationIter + exaggerationDecayIter, value: 1}
     ];
 
     if (this.verbose) {
@@ -150,8 +156,7 @@ export class TSNE {
     if (this.numPoints > numPointsMaximumEta) {
       this.optimizer.eta = maximumEta;
     } else {
-      this.optimizer.eta =
-          minimumEta +
+      this.optimizer.eta = minimumEta +
           (maximumEta - minimumEta) * (this.numPoints / numPointsMaximumEta);
     }
   }
@@ -197,6 +202,7 @@ export class TSNE {
 
   /**
    * Run tSNE computation for a given number of iterations
+   *
    * @param {number} iterations Number of iterations to compute. Default = 1
    */
   async iterate(iterations = 1): Promise<void> {
@@ -214,10 +220,15 @@ export class TSNE {
   /**
    * Return the maximum number of KNN iterations to be performed
    */
-  knnIterations() { return Math.ceil(this.numPoints / 20); }
+  knnIterations() {
+    return Math.ceil(this.numPoints / 20);
+  }
 
   /**
-   * Return the coordinates of the tSNE embedding in a 2-dimensional tensor
+   * Return the coordinates of the tSNE embedding in an array.
+   *
+   * @param normalized boolean indicating whether to normalize
+   *                   the coordinates to 0-1 range
    */
   coordinates(normalized = true): tf.Tensor {
     if (normalized) {
@@ -225,9 +236,9 @@ export class TSNE {
         const rangeX = this.optimizer.maxX - this.optimizer.minX;
         const rangeY = this.optimizer.maxY - this.optimizer.minY;
         const min =
-            tf.tensor2d([ this.optimizer.minX, this.optimizer.minY ], [ 1, 2 ]);
+            tf.tensor2d([this.optimizer.minX, this.optimizer.minY], [1, 2]);
         const max =
-            tf.tensor2d([ this.optimizer.maxX, this.optimizer.maxY ], [ 1, 2 ]);
+            tf.tensor2d([this.optimizer.maxX, this.optimizer.maxY], [1, 2]);
 
         // The embedding is normalized in the 0-1 range while preserving the
         // aspect ratio
@@ -235,18 +246,35 @@ export class TSNE {
         const maxRange = tf.max(range);
         const offset = tf.tidy(() => {
           if (rangeX < rangeY) {
-            return tf.tensor2d([ (rangeY - rangeX) / 2, 0 ], [ 1, 2 ]);
+            return tf.tensor2d([(rangeY - rangeX) / 2, 0], [1, 2]);
           } else {
-            return tf.tensor2d([ 0, (rangeX - rangeY) / 2 ], [ 1, 2 ]);
+            return tf.tensor2d([0, (rangeX - rangeY) / 2], [1, 2]);
           }
         });
-
         return this.optimizer.embedding2D.sub(min).add(offset).div(maxRange);
       });
-
     } else {
       return this.optimizer.embedding2D;
     }
+  }
+
+  /**
+   * Return the coordinates of the tSNE embedding in an array.
+   *
+   * The array will be of the format [[x1, y1] ...]
+   *
+   * @param normalized boolean indicating whether to normalize
+   *                   the coordinates to 0-1 range
+   */
+  async coordsArray(normalized = true): Promise<number[][]> {
+    const coordsData = await this.coordinates(normalized).data();
+
+    const coords = [];
+    for (let i = 0; i < coordsData.length; i += 2) {
+      coords.push([coordsData[i], coordsData[i + 1]]);
+    }
+
+    return coords;
   }
 
   /**

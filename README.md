@@ -84,29 +84,32 @@ Creates and returns a TSNE optimizer.
   - momentum: number — defaults to 0.8
   - knnMode: 'auto'|'bruteForce'|'kNNDescentProgram'|'random' — defaults to auto
 
-### .compute(iterations: number)
+### .compute(iterations: number): Promise<void>
 
 The most direct way to get a tsne projection. Automtatically runs the knn preprocessing
-and the tsne optimization. Returns a promse to indicate when it is done.
+and the tsne optimization. Returns a promise to indicate when it is done.
 
 - iterations the number of iterations to run the tsne optimization for. (The number of knn steps is automatically calculated).
 
-### .iterateKnn(iterations: number)
+### .iterateKnn(iterations: number): Promise<void>
 
 When running tsne iteratively (see section below). This runs runs the knn preprocessing
 for the specified number of iterations.
 
-### .iterate(iterations: number)
+### .iterate(iterations: number): Promise<void>
 
 When running tsne iteratively (see section below). This runs runs the tsne step for the specified number of iterations.
 
-### .coordinates()
+### .coordinates(normalize: boolean): tf.Tensor
 
-Gets the current x, y coordinates of the projected data as a tensor
+Gets the current x, y coordinates of the projected data as a tensor. By 
+default the coordinates are normalized to the range 0-1.
 
-### .coordsArray()
+### .coordsArray(normalize: boolean): Promise<number[][]>
 
-Gets the current x, y coordinates of the projected data as a JavaScript array
+Gets the current x, y coordinates of the projected data as a JavaScript array.
+By default the coordinates are normalized to the range 0-1. This function is
+async and returns a promise.
 
 ### Computing tSNE iteratively
 
