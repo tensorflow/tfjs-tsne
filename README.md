@@ -72,7 +72,7 @@ tsneOpt.compute().then(() => {
 
 ### tsne.optimizer(data: tf.Tensor2d, config?: TSNEConfiguration)
 
-Creates and returns a TSNE optimizer. 
+Creates and returns a TSNE optimizer.
 
 - `data` must be a Rank 2 tensor. Shape is [numPoints, dataPointDimensions]
 - `config` is an optinal object with the following params (all are optional):
@@ -156,4 +156,11 @@ This work makes use of [linear tSNE optimization](https://arxiv) for the optimiz
 
 ### Reference
 Reference to cite if you use this implementation in a research paper:
-[TK Add reference (and link) to paper]
+```Bibtex
+@article{TFjsTSNE,
+  author = {Nicola Pezzotti and Alexander Mordvintsev and Thomas Hollt and Boudewijn P. F. Lelieveldt and Elmar Eisemann and Anna Vilanova},
+  title = {Linear tSNE Optimization for the Web},
+  year = {2018},
+  journal={arXiv preprint arXiv:1805.10817},
+}
+```
