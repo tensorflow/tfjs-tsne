@@ -1645,7 +1645,7 @@
       return TSNEOptimizer;
   }());
 
-  function optimizer(data, config) {
+  function tsne(data, config) {
       return new TSNE(data, config);
   }
   var TSNE = (function () {
@@ -1911,7 +1911,7 @@
 
   exports.EmbeddingDrawer = EmbeddingDrawer;
   exports.KNNEstimator = KNNEstimator;
-  exports.optimizer = optimizer;
+  exports.tsne = tsne;
   exports.TSNEOptimizer = TSNEOptimizer;
   exports.gl_util = gl_util;
   exports.dataset_util = dataset_util;

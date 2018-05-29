@@ -34,12 +34,12 @@ export interface TSNEConfiguration {
 }
 
 /**
- * Creates and returns a new TSNE optimizer.
+ * Creates and returns a new TSNE embedder.
  *
  * @param data Rank 2 tensor of data to embed
  * @param config configuration options
  */
-export function optimizer(data: tf.Tensor, config?: TSNEConfiguration) {
+export function tsne(data: tf.Tensor, config?: TSNEConfiguration) {
   return new TSNE(data, config);
 }
 

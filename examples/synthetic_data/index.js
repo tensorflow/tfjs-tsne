@@ -55,7 +55,7 @@ function generateData(numDimensions, numPoints) {
  *
  */
 async function computeEmbedding(data, numPoints) {
-  const tsneOpt = tsne.optimizer(data, {
+  const embedder = tsne.tsne(data, {
     perplexity: 30,
     verbose: true,
     knnMode: 'auto',
@@ -63,10 +63,10 @@ async function computeEmbedding(data, numPoints) {
 
   // This will run the TSNE computation for 1000 steps.
   // Note that this may take a while.
-  await tsneOpt.compute(1000);
+  await embedder.compute(1000);
 
   // Get the coordinates (in embedding space) of the data
-  const coordinates = await tsneOpt.coordinates().data();
+  const coordinates = await embedder.coordinates().data();
 
   const coords = [];
   for (let p = 0; p < numPoints; ++p) {
