@@ -82,7 +82,6 @@ Creates and returns a TSNE optimizer.
   - exaggerationIter: number — defaults to 300
   - exaggerationDecayIter: number — defaults to 200
   - momentum: number — defaults to 0.8
-  - knnMode: 'auto'|'bruteForce'|'kNNDescentProgram'|'random' — defaults to auto
 
 ### .compute(iterations: number): Promise<void>
 
