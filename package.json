@@ -1,12 +1,18 @@
 {
-  "name": "tfjs-tsne",
+  "name": "@tensorflow/tfjs-tsne",
   "version": "0.0.1",
   "description": "TensorFlow.js powered tSNE implementation",
-  "private": true,
+  "private": false,
   "main": "dist/index.js",
-  "jsdelivr": "dist/tsne.min.js",
-  "unpkg": "dist/tsne.min.js",
+  "jsdelivr": "dist/tfjs-tsne.min.js",
+  "unpkg": "dist/tfjs-tsne.min.js",
+  "jsnext:main": "dist-es6/index.js",
+  "module": "dist-es6/index.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs-tsne.git"
+  },
   "devDependencies": {
     "@tensorflow/tfjs-core": "^0.10.1",
     "clang-format": "~1.2.2",
@@ -32,7 +38,7 @@
     "@tensorflow/tfjs-core": ">=0.10.1"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --project tsconfig-es5.json && tsc",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",

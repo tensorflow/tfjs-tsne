@@ -63,17 +63,8 @@ async function computeEmbedding(data, numPoints) {
   // Note that this may take a while.
   await embedder.compute(1000);
 
-  // Get the coordinates (in embedding space) of the data
-  const coordinates = await embedder.coordinates().data();
-
-  const coords = [];
-  for (let p = 0; p < numPoints; ++p) {
-    // TODO reshape this to a 2d array.
-    const x = coordinates[p * 2];
-    const y = coordinates[p * 2 + 1];
-    coords.push([x, y]);
-  }
-  return coords;
+  // Get the normalized coordinates of the data
+  return await embedder.coordsArray();
 }
 
 /**
@@ -84,11 +75,8 @@ function showEmbedding(data) {
   const width = 800 - margin.left - margin.right;
   const height = 800 - margin.top - margin.bottom;
 
-  const x =
-      d3.scaleLinear().domain(d3.extent(data, d => d[0])).range([0, width]);
-
-  const y =
-      d3.scaleLinear().domain(d3.extent(data, d => d[1])).range([height, 0]);
+  const x = d3.scaleLinear().domain([0, 1]).range([0, width]);
+  const y = d3.scaleLinear().domain([0, 1]).range([height, 0]);
 
   const chart = d3.select('body')
                     .append('svg')
@@ -130,4 +118,4 @@ function showEmbedding(data) {
       .attr('r', 5);
 }
 
-start();
+document.addEventListener('DOMContentLoaded', () => start());
