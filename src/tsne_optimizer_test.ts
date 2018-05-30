@@ -16,7 +16,6 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-
 import * as dataset_util from './dataset_util';
 import * as tf_tsne from './tsne_optimizer';
 
@@ -31,15 +30,20 @@ describe('TSNEOptimizer class', () => {
     tsne.dispose();
   });
 
-  it('requires the neighborhoods to perform iterations', () => {
+  it('requires the neighborhoods to perform iterations', async () => {
     const tsne = new tf_tsne.TSNEOptimizer(100, false);
-    expect(() => {
-      tsne.iterate();
-    }).toThrow();
-    tsne.dispose();
+    try {
+      await tsne.iterate();
+    } catch (e) {
+      expect(true);
+      tsne.dispose();
+      return;
+    }
+
+    fail('Method did not throw an exception');
   });
 
-  it('requires the neighborhoods to perform iterations', () => {
+  it('returns a properly sized embedding', () => {
     const tsne = new tf_tsne.TSNEOptimizer(100, false);
     const embedding2D = tsne.embedding2D;
     expect(embedding2D.shape[0]).toBe(100);
@@ -48,14 +52,20 @@ describe('TSNEOptimizer class', () => {
     tsne.dispose();
   });
 
-  it('detects a mismatched data shape', () => {
+  it('detects a mismatched data shape', async () => {
     const tsne = new tf_tsne.TSNEOptimizer(100, false);
     const knnGraph = dataset_util.generateKNNClusterData(1000, 10, 100);
-    expect(() => {
-      tsne.initializeNeighborsFromKNNGraph(
+
+    try {
+      await tsne.initializeNeighborsFromKNNGraph(
           1000, 100, knnGraph.distances, knnGraph.indices);
-    }).toThrow();
-    tsne.dispose();
+    } catch (e) {
+      expect(true);
+      tsne.dispose();
+      return;
+    }
+
+    fail('Method did not throw an exception');
   });
 
   it('requires 4 tensors', () => {
@@ -72,28 +82,27 @@ describe('TSNEOptimizer class', () => {
   });
 
   it('keeps the number of tensors constant during neighbors initialization',
-     () => {
+     async () => {
        const tsne = new tf_tsne.TSNEOptimizer(1000, false);
-       const numTensors = tf.memory().numTensors;
 
        const knnGraph = dataset_util.generateKNNClusterData(1000, 10, 100);
-       expect(tf.memory().numTensors).toBe(numTensors);
-       tsne.initializeNeighborsFromKNNGraph(
+       await tsne.initializeNeighborsFromKNNGraph(
            1000, 100, knnGraph.distances, knnGraph.indices);
-       expect(tf.memory().numTensors).toBe(numTensors);
+
+       expect(tf.memory().numTensors).toBe(4);
        tsne.dispose();
      });
 
-  it('keeps the number of tensors constant during SGD', () => {
+  it('keeps the number of tensors constant during SGD', async () => {
     const tsne = new tf_tsne.TSNEOptimizer(1000, false);
     const knnGraph = dataset_util.generateKNNClusterData(1000, 10, 30);
-    tsne.initializeNeighborsFromKNNGraph(
+    await tsne.initializeNeighborsFromKNNGraph(
         1000, 30, knnGraph.distances, knnGraph.indices);
 
     const numTensors = tf.memory().numTensors;
-    const numIter = 100;
+    const numIter = 25;
     for (let i = 0; i < numIter; ++i) {
-      tsne.iterate();
+      await tsne.iterate();
     }
     expect(tf.memory().numTensors).toBe(numTensors);
     tsne.dispose();
@@ -105,29 +114,30 @@ describe('TSNEOptimizer class', () => {
     tsne.dispose();
   });
 
-  it('counts the iterations', () => {
+  it('counts the iterations', async () => {
     const tsne = new tf_tsne.TSNEOptimizer(1000, false);
     const knnGraph = dataset_util.generateKNNClusterData(1000, 10, 30);
-    tsne.initializeNeighborsFromKNNGraph(
+    await tsne.initializeNeighborsFromKNNGraph(
         1000, 30, knnGraph.distances, knnGraph.indices);
 
     const numIter = 10;
     for (let i = 0; i < numIter; ++i) {
-      tsne.iterate();
+      await tsne.iterate();
+      expect(tsne.iteration).toBe(i + 1);
     }
-    expect(tsne.iteration).toBe(numIter);
+
     tsne.dispose();
   });
 
-  it('resets the iterations counter on re-init', () => {
+  it('resets the iterations counter on re-init', async () => {
     const tsne = new tf_tsne.TSNEOptimizer(1000, false);
     const knnGraph = dataset_util.generateKNNClusterData(1000, 10, 30);
-    tsne.initializeNeighborsFromKNNGraph(
+    await tsne.initializeNeighborsFromKNNGraph(
         1000, 30, knnGraph.distances, knnGraph.indices);
 
     const numIter = 10;
     for (let i = 0; i < numIter; ++i) {
-      tsne.iterate();
+      await tsne.iterate();
     }
     tsne.initializeEmbedding();
 
@@ -313,78 +323,97 @@ describe('TSNEOptimizer class', () => {
     tsne.dispose();
   });
 
-  it('has proper exaggeration for the current iteration (1)', () => {
+  it('has proper exaggeration for the current iteration (1)', async () => {
     const tsne = new tf_tsne.TSNEOptimizer(100, false);
     const ex = [{iteration: 0, value: 3}];
     tsne.exaggeration = ex;
 
     const knnGraph = dataset_util.generateKNNClusterData(100, 10, 30);
-    tsne.initializeNeighborsFromKNNGraph(
+    await tsne.initializeNeighborsFromKNNGraph(
         100, 30, knnGraph.distances, knnGraph.indices);
-    tsne.iterate();
-    tsne.iterate();
+
+    await tsne.iterate();
+    await tsne.iterate();
 
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(3);
     tsne.dispose();
   });
 
-  it('has proper exaggeration for the current iteration (2)', () => {
+  it('has proper exaggeration for the current iteration (2)', async () => {
     const tsne = new tf_tsne.TSNEOptimizer(100, false);
     const ex = [{iteration: 0, value: 3}, {iteration: 2, value: 1}];
     tsne.exaggeration = ex;
     const knnGraph = dataset_util.generateKNNClusterData(100, 10, 30);
-    tsne.initializeNeighborsFromKNNGraph(
+
+    await tsne.initializeNeighborsFromKNNGraph(
         100, 30, knnGraph.distances, knnGraph.indices);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(3);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(2);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(1);
+
     tsne.dispose();
   });
 
-  it('has proper exaggeration for the current iteration (3)', () => {
+  it('has proper exaggeration for the current iteration (3)', async () => {
     const tsne = new tf_tsne.TSNEOptimizer(100, false);
     const ex = [{iteration: 1, value: 3}, {iteration: 3, value: 1}];
     tsne.exaggeration = ex;
 
     const knnGraph = dataset_util.generateKNNClusterData(100, 10, 30);
-    tsne.initializeNeighborsFromKNNGraph(
+    await tsne.initializeNeighborsFromKNNGraph(
         100, 30, knnGraph.distances, knnGraph.indices);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(3);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(3);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(2);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(1);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(1);
+
     tsne.dispose();
   });
 
-  it('has proper exaggeration for the current iteration (4)', () => {
+  it('has proper exaggeration for the current iteration (4)', async () => {
     const tsne = new tf_tsne.TSNEOptimizer(100, false);
     const ex = [{iteration: 0, value: 5}, {iteration: 4, value: 1}];
     tsne.exaggeration = ex;
 
     const knnGraph = dataset_util.generateKNNClusterData(100, 10, 30);
-    tsne.initializeNeighborsFromKNNGraph(
+    await tsne.initializeNeighborsFromKNNGraph(
         100, 30, knnGraph.distances, knnGraph.indices);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(5);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(4);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(3);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(2);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(1);
-    tsne.iterate();
+
+    await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(1);
+
     tsne.dispose();
   });
 });

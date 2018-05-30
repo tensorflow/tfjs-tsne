@@ -18,7 +18,7 @@
     "clang-format": "~1.2.2",
     "mocha": "^5.1.1",
     "@types/jasmine": "^2.8.6",
-    "jasmine-core": "~2.6.4",
+    "jasmine-core": "^2.99",
     "karma": "^2.0.2",
     "karma-chrome-launcher": "^2.2.0",
     "karma-jasmine": "^1.1.1",

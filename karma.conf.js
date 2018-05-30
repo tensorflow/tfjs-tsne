@@ -29,6 +29,12 @@ module.exports = function(config) {
       '**/*.ts': 'karma-typescript'  // *.tsx for React Jsx
     },
     reporters: ['progress', 'karma-typescript'],
-    browsers: ['Chrome']
+    browsers: ['Chrome'],
+    karmaTypescriptConfig: {
+      tsconfig: './tsconfig-es2017.json',
+      compilerOptions: {module: 'commonjs', sourceMap: true}
+    },
+    browserNoActivityTimeout: 30000,
+    client: {args: ['--grep', config.grep || '']}
   });
 };

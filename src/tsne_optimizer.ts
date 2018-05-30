@@ -263,7 +263,7 @@ export class TSNEOptimizer {
   }
 
   // Randomly initialize the position of the
-  async initializeEmbedding(): Promise<void> {
+  initializeEmbedding() {
     if (this.embedding != null) {
       this.embedding.dispose();
     }
@@ -282,8 +282,12 @@ export class TSNEOptimizer {
       return embedding;
     });
 
-    // Compute embedding boundaries
-    await this.computeBoundaries();
+    // Setting embedding boundaries
+    const maxEmbeddingAbsCoordinate = 3;
+    this._minX = -maxEmbeddingAbsCoordinate;
+    this._minY = -maxEmbeddingAbsCoordinate;
+    this._maxX = maxEmbeddingAbsCoordinate;
+    this._maxY = maxEmbeddingAbsCoordinate;
     this.log('\tmin X', this._minX);
     this.log('\tmax X', this._maxX);
     this.log('\tmin Y', this._minY);
@@ -578,7 +582,7 @@ export class TSNEOptimizer {
     });
 
     // 8) update the bounding box
-    this.computeBoundaries();
+    await this.computeBoundaries();
 
     // Increase the iteration counter
     ++this._iteration;
@@ -702,18 +706,17 @@ export class TSNEOptimizer {
       return [ min, max ];
     });
 
-    // TODO clean up the code
-    this._minX = (await min.data())[0];
-    this._maxX = (await max.data())[0];
-    const offsetX = (this._maxX - this._minX) * 0.05;
-    this._minX -= offsetX;
-    this._maxX += offsetX;
+    const minData = await min.data();
+    const maxData = await max.data();
+    const percentageOffset = 0.05;
 
-    this._minY = (await min.data())[1];
-    this._maxY = (await max.data())[1];
-    const offsetY = (this._maxY - this._minY) * 0.05;
-    this._minY -= offsetY;
-    this._maxY += offsetY;
+    const offsetX = (maxData[0] - minData[0]) * percentageOffset;
+    this._minX = minData[0] - offsetX;
+    this._maxX = maxData[0] + offsetX;
+
+    const offsetY = (maxData[1] - minData[1]) * percentageOffset;
+    this._minY = minData[1] - offsetY;
+    this._maxY = maxData[1] + offsetY;
 
     min.dispose();
     max.dispose();
