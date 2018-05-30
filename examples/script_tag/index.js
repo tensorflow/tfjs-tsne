@@ -23,7 +23,7 @@
  */
 async function start() {
   const numDimensions = 100;
-  const numPoints = 20000;
+  const numPoints = 10000;
 
   const data = generateData(numDimensions, numPoints);
   const coordinates = await computeEmbedding(data, numPoints);
