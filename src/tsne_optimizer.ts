@@ -282,8 +282,12 @@ export class TSNEOptimizer {
       return embedding;
     });
 
-    // Compute embedding boundaries
-    await this.computeBoundaries();
+    // Setting embedding boundaries
+    const maxEmbeddingAbsCoordinate = 3;
+    this._minX = -maxEmbeddingAbsCoordinate;
+    this._minY = -maxEmbeddingAbsCoordinate;
+    this._maxX = maxEmbeddingAbsCoordinate;
+    this._maxY = maxEmbeddingAbsCoordinate;
     this.log('\tmin X', this._minX);
     this.log('\tmax X', this._maxX);
     this.log('\tmin Y', this._minY);
@@ -578,7 +582,7 @@ export class TSNEOptimizer {
     });
 
     // 8) update the bounding box
-    this.computeBoundaries();
+    await this.computeBoundaries();
 
     // Increase the iteration counter
     ++this._iteration;
