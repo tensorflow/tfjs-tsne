@@ -31,8 +31,10 @@ module.exports = function(config) {
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome'],
     karmaTypescriptConfig: {
-      tsconfig: './tsconfig.json',
+      tsconfig: './tsconfig-es2017.json',
       compilerOptions: {module: 'commonjs', sourceMap: true}
     },
+    browserNoActivityTimeout: 30000,
+    client: {args: ['--grep', config.grep || '']}
   });
 };
