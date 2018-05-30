@@ -263,7 +263,7 @@ export class TSNEOptimizer {
   }
 
   // Randomly initialize the position of the
-  async initializeEmbedding(): Promise<void> {
+  initializeEmbedding() {
     if (this.embedding != null) {
       this.embedding.dispose();
     }
