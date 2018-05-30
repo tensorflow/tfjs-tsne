@@ -66,8 +66,7 @@ async function computeEmbedding(data, numPoints) {
   await embedder.compute(1000);
 
   // Get the normalized coordinates of the data
-  const coordinates = await embedder.coordsArray();
-  return coordinates;
+  return await embedder.coordsArray();
 }
 
 /**
@@ -121,4 +120,4 @@ function showEmbedding(data) {
       .attr('r', 5);
 }
 
-start();
+document.addEventListener('DOMContentLoaded', () => start());
