@@ -147,6 +147,8 @@ iterativeTsne();
 
 ### Limitations
 
+This library requires WebGL 2 support and thus will not work on certain devices, mobile devices especially. Currently it best works on desktop devices.
+
 From our current experiments we suggest limiting the data size passed to this implementation
 to data with a shape of [10000,100], i.e. up to 10000 points with 100 dimensions each. You can do more but it might slow down.
 
