@@ -25,7 +25,7 @@ You can then do the following
 const data = tf.randomUniform([2000,10]);
 
 // Get a tsne optimizer
-const tsneOpt = tsne.optimizer(data);
+const tsneOpt = tsne.tsne(data);
 
 // Compute a T-SNE embedding, returns a promise.
 // Runs for 1000 iterations be default.
@@ -40,23 +40,23 @@ tsneOpt.compute().then(() => {
 ### Via NPM
 
 ```
-yarn add tensorflow@tfjs-tsne
+yarn add @tensorflow/tfjs-tsne
 ```
 or
 ```
-npm install tensorflow@tfjs-tsne
+npm install @tensorflow/tfjs-tsne
 ```
 
 Then
 
 ```js
-import tsne from '@tensorflow/tfjs-tsne';
+import * as tsne from '@tensorflow/tfjs-tsne';
 
 // Create some data
 const data = tf.randomUniform([2000,10]);
 
 // Initialize the tsne optimizer
-const tsneOpt = tsne.optimizer(data);
+const tsneOpt = tsne.tsne(data);
 
 // Compute a T-SNE embedding, returns a promise.
 // Runs for 1000 iterations be default.
@@ -70,7 +70,7 @@ tsneOpt.compute().then(() => {
 
 ## API
 
-### tsne.optimizer(data: tf.Tensor2d, config?: TSNEConfiguration)
+### tsne.tsne(data: tf.Tensor2d, config?: TSNEConfiguration)
 
 Creates and returns a TSNE optimizer.
 
@@ -144,6 +144,10 @@ async function iterativeTsne() {
 
 iterativeTsne();
 ```
+
+### Example
+
+We also have an [example](https://github.com/tensorflow/tfjs-examples/tree/master/tsne-mnist-canvas) of using this library to perform TSNE on the MNIST dataset [here](https://github.com/tensorflow/tfjs-examples/tree/master/tsne-mnist-canvas).
 
 ### Limitations
 
