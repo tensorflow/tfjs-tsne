@@ -56,7 +56,7 @@ function generateData(numDimensions, numPoints) {
  */
 async function computeEmbedding(data, numPoints) {
   const embedder = tsne.tsne(data, {
-    perplexity: 30,
+    perplexity: 18,
     verbose: true,
     knnMode: 'auto',
   });

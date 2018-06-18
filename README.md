@@ -76,7 +76,7 @@ Creates and returns a TSNE optimizer.
 
 - `data` must be a Rank 2 tensor. Shape is [numPoints, dataPointDimensions]
 - `config` is an optinal object with the following params (all are optional):
-  - perplexity: number — defaults to 30. Max value is 42
+  - perplexity: number — defaults to 18. Max value is defined by hardware limitations.
   - verbose: boolean — defaults to false
   - exaggeration: number — defaults to 4
   - exaggerationIter: number — defaults to 300

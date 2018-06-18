@@ -16,7 +16,7 @@
  */
 
 import {KNNEstimator} from './knn';
-import {tsne} from './tsne';
+import {maximumPerplexity, tsne} from './tsne';
 import {TSNEOptimizer} from './tsne_optimizer';
 
-export {KNNEstimator, tsne, TSNEOptimizer};
+export {KNNEstimator, maximumPerplexity, tsne, TSNEOptimizer};

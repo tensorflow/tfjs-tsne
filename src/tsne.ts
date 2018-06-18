@@ -23,14 +23,32 @@ import {tensorToDataTexture} from './tensor_to_data_texture';
 import {TSNEOptimizer} from './tsne_optimizer';
 
 export interface TSNEConfiguration {
-  perplexity?: number;             // Default: 30
-  exaggeration?: number;           // Default: 4
-  exaggerationIter?: number;       // Default: 300
-  exaggerationDecayIter?: number;  // Default: 200
-  momentum?: number;               // Default: 0.8
-  verbose?: boolean;               // Default: false
+  perplexity?: number;            // Default: 18
+  exaggeration?: number;          // Default: 4
+  exaggerationIter?: number;      // Default: 300
+  exaggerationDecayIter?: number; // Default: 200
+  momentum?: number;              // Default: 0.8
+  verbose?: boolean;              // Default: false
   knnMode: 'auto'|'bruteForce';
   // Default: auto
+}
+
+/**
+ * Returns the maximum value of perplexity given the available
+ * WebGL capabilities.
+ */
+export function maximumPerplexity() {
+  const backend = tf.ENV.findBackend('webgl') as tf.webgl.MathBackendWebGL;
+  if (backend === null) {
+    throw Error('WebGL backend is not available');
+  }
+  const gl = backend.getGPGPUContext().gl;
+  const maxVaryingVectors = gl.getParameter(gl.MAX_VARYING_VECTORS);
+  // one vector is reserved and each vector contains 4 neighbors;
+  const numNeighbors = (maxVaryingVectors - 1) * 4;
+  // the maximum perplexity is a third of the maximum number of neighbors
+  const maximumPerplexity = Math.floor(numNeighbors / 3);
+  return maximumPerplexity;
 }
 
 /**
@@ -70,6 +88,19 @@ export class TSNE {
     if (inputShape.length !== 2) {
       throw Error('computeTSNE: input tensor must be 2-dimensional');
     }
+
+    // Checking for a valid perplexity value given hardware limitations
+    let perplexity = 18;
+    if (this.config !== undefined) {
+      if (this.config.perplexity !== undefined) {
+        perplexity = this.config.perplexity;
+      }
+    }
+    const maxPerplexity = maximumPerplexity();
+    if (perplexity > maxPerplexity) {
+      throw Error(`computeTSNE: perplexity cannot be greater than` +
+                  `${maxPerplexity} on this machine`);
+    }
   }
 
   /**
@@ -79,7 +110,7 @@ export class TSNE {
    */
   private async initialize(): Promise<void> {
     // Default parameters
-    let perplexity = 30;
+    let perplexity = 18;
     let exaggeration = 4;
     let exaggerationIter = 300;
     let exaggerationDecayIter = 200;
@@ -112,10 +143,6 @@ export class TSNE {
       }
     }
 
-    // Number of neighbors cannot exceed 128
-    if (perplexity > 42) {
-      throw Error('computeTSNE: perplexity cannot be greater than 42');
-    }
     // Neighbors must be roughly 3*perplexity and a multiple of 4
     this.numNeighbors = Math.floor((perplexity * 3) / 4) * 4;
     this.packedData = await tensorToDataTexture(this.data);
