@@ -28,7 +28,7 @@ const data = tf.randomUniform([2000,10]);
 const tsneOpt = tsne.tsne(data);
 
 // Compute a T-SNE embedding, returns a promise.
-// Runs for 1000 iterations be default.
+// Runs for 1000 iterations by default.
 tsneOpt.compute().then(() => {
   // tsne.coordinate returns a *tensor* with x, y coordinates of
   // the embedded data.
@@ -59,7 +59,7 @@ const data = tf.randomUniform([2000,10]);
 const tsneOpt = tsne.tsne(data);
 
 // Compute a T-SNE embedding, returns a promise.
-// Runs for 1000 iterations be default.
+// Runs for 1000 iterations by default.
 tsneOpt.compute().then(() => {
   // tsne.coordinate returns a *tensor* with x, y coordinates of
   // the embedded data.
@@ -75,7 +75,7 @@ tsneOpt.compute().then(() => {
 Creates and returns a TSNE optimizer.
 
 - `data` must be a Rank 2 tensor. Shape is [numPoints, dataPointDimensions]
-- `config` is an optinal object with the following params (all are optional):
+- `config` is an optional object with the following params (all are optional):
   - perplexity: number — defaults to 18. Max value is defined by hardware limitations.
   - verbose: boolean — defaults to false
   - exaggeration: number — defaults to 4
