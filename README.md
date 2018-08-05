@@ -85,7 +85,7 @@ Creates and returns a TSNE optimizer.
 
 ### .compute(iterations: number): Promise<void>
 
-The most direct way to get a tsne projection. Automtatically runs the knn preprocessing
+The most direct way to get a tsne projection. Automatically runs the knn preprocessing
 and the tsne optimization. Returns a promise to indicate when it is done.
 
 - iterations the number of iterations to run the tsne optimization for. (The number of knn steps is automatically calculated).
@@ -97,7 +97,7 @@ for the specified number of iterations.
 
 ### .iterate(iterations: number): Promise<void>
 
-When running tsne iteratively (see section below). This runs runs the tsne step for the specified number of iterations.
+When running tsne iteratively (see section below). This runs the tsne step for the specified number of iterations.
 
 ### .coordinates(normalize: boolean): tf.Tensor
 
