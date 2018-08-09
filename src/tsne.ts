@@ -156,7 +156,7 @@ export class TSNE {
 
     this.knnEstimator = new KNNEstimator(
         this.packedData.texture, this.packedData.shape, this.numPoints,
-        this.numDimensions, this.numNeighbors, false);
+        this.numDimensions, this.numNeighbors, this.verbose);
 
     this.optimizer = new TSNEOptimizer(this.numPoints, false);
     const exaggerationPolyline = [

@@ -309,7 +309,8 @@ export class TSNEOptimizer {
                                         indices: Uint32Array): Promise<void> {
     // Computing the shape of the knnGraphTexture
     const pointsPerRow =
-        Math.floor(Math.sqrt(numPoints * numNeighbors) / numNeighbors);
+        Math.max(1,
+          Math.floor(Math.sqrt(numPoints * numNeighbors) / numNeighbors));
     const numRows = Math.ceil(numPoints / pointsPerRow);
     const dataShape =
         {numPoints, pixelsPerPoint : numNeighbors, numRows, pointsPerRow};

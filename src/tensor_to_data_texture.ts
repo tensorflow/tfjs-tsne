@@ -45,7 +45,8 @@ export async function tensorToDataTexture(tensor: tf.Tensor):
   const numChannels = 4;
   const pixelsPerPoint = Math.ceil(numDimensions / numChannels);
   const pointsPerRow =
-      Math.floor(Math.sqrt(numPoints * pixelsPerPoint) / pixelsPerPoint);
+      Math.max(1,
+        Math.floor(Math.sqrt(numPoints * pixelsPerPoint) / pixelsPerPoint));
   const numRows = Math.ceil(numPoints / pointsPerRow);
 
   const tensorData = tensor.dataSync();

@@ -142,7 +142,8 @@ export function generateKNNClusterTexture(
     numNeighbors: number): {knnGraph: WebGLTexture, dataShape: RearrangedData} {
   // Computing data shape
   const pointsPerRow =
-      Math.floor(Math.sqrt(numPoints * numNeighbors) / numNeighbors);
+      Math.max(1,
+        Math.floor(Math.sqrt(numPoints * numNeighbors) / numNeighbors));
   const numRows = Math.ceil(numPoints / pointsPerRow);
   const dataShape =
       {numPoints, pixelsPerPoint: numNeighbors, numRows, pointsPerRow};
@@ -178,7 +179,8 @@ export function generateKNNLineTexture(numPoints: number, numNeighbors: number):
     {knnGraph: WebGLTexture, dataShape: RearrangedData} {
   // Computing data shape
   const pointsPerRow =
-      Math.floor(Math.sqrt(numPoints * numNeighbors) / numNeighbors);
+      Math.max(1,
+        Math.floor(Math.sqrt(numPoints * numNeighbors) / numNeighbors));
   const numRows = Math.ceil(numPoints / pointsPerRow);
   const dataShape =
       {numPoints, pixelsPerPoint: numNeighbors, numRows, pointsPerRow};

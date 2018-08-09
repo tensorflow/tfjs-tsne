@@ -142,6 +142,9 @@ export class KNNEstimator {
         initNeigh[(i * numNeighs + n) * 2 + 1] = 10e30;
       }
     }
+    this.log('knn-textureWidth', this.knnDataShape.pointsPerRow *
+              this.knnDataShape.pixelsPerPoint);
+    this.log('knn-textureHeight', this.knnDataShape.numRows);
     this.knnTexture0 = gl_util.createAndConfigureTexture(
         this.gpgpu.gl,
         this.knnDataShape.pointsPerRow * this.knnDataShape.pixelsPerPoint,
@@ -154,13 +157,18 @@ export class KNNEstimator {
   }
 
   private initilizeCustomWebGLPrograms(distanceComputationSource: string) {
+    this.log('knn Create programs/buffers start');
     this.copyDistancesProgram = knn_util.createCopyDistancesProgram(this.gpgpu);
+    this.log('knn Create indices program');
     this.copyIndicesProgram = knn_util.createCopyIndicesProgram(this.gpgpu);
 
+    this.log('knn Create brute force knn program, numNeighs', this.numNeighs);
     this.bruteForceKNNProgram = knn_util.createBruteForceKNNProgram(
         this.gpgpu, this.numNeighs, distanceComputationSource);
+    this.log('knn Create random sampling force knn program');
     this.randomSamplingKNNProgram = knn_util.createRandomSamplingKNNProgram(
         this.gpgpu, this.numNeighs, distanceComputationSource);
+    this.log('knn Create descent program');
     this.kNNDescentProgram = knn_util.createKNNDescentProgram(
         this.gpgpu, this.numNeighs, distanceComputationSource);
 
@@ -170,8 +178,10 @@ export class KNNEstimator {
         linesVertexId[i] = i;
       }
     }
+    this.log('knn Create static vertex start');
     this.linesVertexIdBuffer = tf.webgl.webgl_util.createStaticVertexBuffer(
         this.gpgpu.gl, linesVertexId);
+    this.log('knn Create programs/buffers done');
   }
 
   iterateBruteForce() {

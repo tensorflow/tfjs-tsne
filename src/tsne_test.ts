@@ -20,10 +20,9 @@ import * as tf_tsne from './tsne';
 
 /**
  * Returns a simple dataset for testing
+ * Defaults to numPoints = 300, numDimensions = 10
  */
-function generateData() {
-  const numPoints = 300;
-  const numDimensions = 10;
+function generateData(numPoints = 300, numDimensions = 10) {
   const data = tf.tidy(() => {
     return tf.linspace(0, 1, numPoints * numDimensions)
         .reshape([ numPoints, numDimensions ])
@@ -78,4 +77,35 @@ describe('TSNE class', () => {
 
        data.dispose();
      });
+});
+
+describe('TSNE class', () => {
+  it('iterateKnn and iterate also work when the number of ' +
+    'dimensions is larger than the number of points',
+    async () => {
+      const data = generateData(100, 20000);
+      const testOpt = tf_tsne.tsne(data, {
+          perplexity : 15,
+          verbose : false,
+          knnMode : 'auto',
+      });
+
+      try {
+        await testOpt.iterateKnn(10);
+      } catch(e) {
+        fail('iterateKnn threw exception: ${e}');
+      }
+
+      try {
+        await testOpt.iterate(10);
+      } catch(e) {
+        fail('iterate threw exception: ${e}');
+      }
+
+      const coords = await testOpt.coordinates();
+      expect(coords.shape[0]).toBe(100);
+      expect(coords.shape[1]).toBe(2);
+      data.dispose();
+      return;
+    });
 });
