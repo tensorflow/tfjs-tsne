@@ -41,7 +41,7 @@
     "build": "tsc --project tsconfig-es5.json && tsc",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
-    "publish-local": "yarn build-npm && yalc push",
+    "publish-local": "npm run build-npm && yalc push",
     "lint": "tslint -p . -t verbose",
     "test": "karma start",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun"
