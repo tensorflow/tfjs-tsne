@@ -186,6 +186,12 @@ export class TSNE {
       this.optimizer.eta = minimumEta +
           (maximumEta - minimumEta) * (this.numPoints / numPointsMaximumEta);
     }
+    
+    this.initialized = true;
+
+    if (this.verbose) {
+      console.log('initialized');
+    }
   }
 
   /**
