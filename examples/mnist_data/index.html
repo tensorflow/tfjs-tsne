@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="style.css">
+<body>
+    <!-- Overlay canvas trick from http://twgljs.org/examples/itemlist.html
+    permits a single webgl context for the whole layout and disjoint
+    render viewports
+    -->
+    <div id="canvasContainer"></div>
+    <div style="z-index:2; position:absolute; top:0px; margin:8px">
+        <h1 class="sameLine">tfjs-tsne MNIST example </h1><h3 id="displayStatus" class="status sameLine"></h3>
+        <p>
+            Compute the t-SNE embedding for 65000 MNIST 28x28 digits.
+        </p>
+        <p>
+            <div>
+            <figure>
+                <div id="scatterPlot" class="scatterPlot"></div>
+                <figcaption>t-SNE embedding</figcaption>
+            </figure>
+            <figure>
+                <canvas id="digitCanv" width="128px" height="128px"></canvas>
+                <figcaption>Digit under cursor</figcaption>
+            </figure>
+            </div>
+        </p>
+        <figure>
+            <div>
+                <label id="pntSliderVal" for="numPointsSlider">num MNIST points:&ensp;&ensp;&ensp;2500</label>
+                <input id='numPointsSlider' min='100' max='65000' type='range' step='100', value='  2500'>
+                <input id='restartButton' type='button' value='(re)Start'/>
+                <input id='stopButton' type='button' value='Stop'/>
+            </div>
+        </figure>
+        <figure>
+            <div>
+                <label id="sliderVal" for="kNNSlider">max kNN iterations: 120</label>
+                <input id='kNNSlider' min='50' max='250' type='range' value='120' list="knnTicks">
+                <datalist id="knnTicks" style="display:none">
+                    <option value="50" label="50">
+                    <option value="60">
+                    <option value="70">
+                    <option value="80">
+                    <option value="90">
+                    <option value="100" label="100">
+                    <option value="110">
+                    <option value="120">
+                    <option value="130">
+                    <option value="140">
+                    <option value="150" label="150">
+                    <option value="160">
+                    <option value="170">
+                    <option value="180">
+                    <option value="190">
+                    <option value="200" label="200">
+                    <option value="210">
+                    <option value="220">
+                    <option value="230">
+                    <option value="240">
+                    <option value="250" label="250">
+                </datalist>
+                <p id="knnIterCount">knn iteration: 0</p>
+                <p id="tsneIterCount">tsne iteration: 0</p>
+            </div>
+        </figure>
+        <script src="./index.js"></script>
+        <div class="textureParent">
+            <div id="textureR" class="texturePlot"></div>
+            <div id="textureG" class="texturePlot"></div>
+            <div id="textureB" class="texturePlot"></div>
+        </div>
+    </div>
+</body>
+
+</html>

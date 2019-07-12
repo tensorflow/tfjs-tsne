@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style>
+frame {
+    display: inline-block
+}
+</style>
+</head>
+    <meta charset="UTF-8">
+<body>
+    <h1>AH samples</h1>
+    <p>
+        Compute the t-SNE embedding for 19992 genes x 105 brain samples.
+        (<a href="https://github.com/karpathy/tsnejs">Karpathy tSNEJS</a>,
+        gene/sample data from <a href="http://human.brain-map.org/">Allen Brain Atlas</a>)
+    </p>
+    <p>
+        <div>
+        <figure>
+            <p id="konvaContainer" width="512px" height="512px"></p>
+            <figcaption>Pure javascript tSNE (Karpathy)</figcaption>
+        </figure>
+        </div>
+    </p>
+    <figure>
+        <div>
+            <input id='restartButton' type='button' value='Restart'/>
+            <input id='stopButton' type='button' value='Stop'/>
+        </div>
+    </figure>
+    <figure>
+        <div>
+            <p id="tsneIterCount">tsne iteration: 0</p>
+        </div>
+    </figure>
+    <script src="./index.js"></script>
+    <script src="./tsne.js"></script>
+</body>
+
+</html>

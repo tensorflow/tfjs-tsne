@@ -58,7 +58,7 @@ describe('TSNEOptimizer class', () => {
 
     try {
       await tsne.initializeNeighborsFromKNNGraph(
-          1000, 100, knnGraph.distances, knnGraph.indices);
+          1000, 100, knnGraph.distances, knnGraph.indices, 100/3);
     } catch (e) {
       expect(true);
       tsne.dispose();
@@ -87,7 +87,7 @@ describe('TSNEOptimizer class', () => {
 
        const knnGraph = dataset_util.generateKNNClusterData(1000, 10, 100);
        await tsne.initializeNeighborsFromKNNGraph(
-           1000, 100, knnGraph.distances, knnGraph.indices);
+           1000, 100, knnGraph.distances, knnGraph.indices, 100/3);
 
        expect(tf.memory().numTensors).toBe(4);
        tsne.dispose();
@@ -97,7 +97,7 @@ describe('TSNEOptimizer class', () => {
     const tsne = new tf_tsne.TSNEOptimizer(1000, false);
     const knnGraph = dataset_util.generateKNNClusterData(1000, 10, 30);
     await tsne.initializeNeighborsFromKNNGraph(
-        1000, 30, knnGraph.distances, knnGraph.indices);
+        1000, 30, knnGraph.distances, knnGraph.indices, 10);
 
     const numTensors = tf.memory().numTensors;
     const numIter = 25;
@@ -118,7 +118,7 @@ describe('TSNEOptimizer class', () => {
     const tsne = new tf_tsne.TSNEOptimizer(1000, false);
     const knnGraph = dataset_util.generateKNNClusterData(1000, 10, 30);
     await tsne.initializeNeighborsFromKNNGraph(
-        1000, 30, knnGraph.distances, knnGraph.indices);
+        1000, 30, knnGraph.distances, knnGraph.indices, 10);
 
     const numIter = 10;
     for (let i = 0; i < numIter; ++i) {
@@ -133,7 +133,7 @@ describe('TSNEOptimizer class', () => {
     const tsne = new tf_tsne.TSNEOptimizer(1000, false);
     const knnGraph = dataset_util.generateKNNClusterData(1000, 10, 30);
     await tsne.initializeNeighborsFromKNNGraph(
-        1000, 30, knnGraph.distances, knnGraph.indices);
+        1000, 30, knnGraph.distances, knnGraph.indices, 10);
 
     const numIter = 10;
     for (let i = 0; i < numIter; ++i) {
@@ -330,7 +330,7 @@ describe('TSNEOptimizer class', () => {
 
     const knnGraph = dataset_util.generateKNNClusterData(100, 10, 30);
     await tsne.initializeNeighborsFromKNNGraph(
-        100, 30, knnGraph.distances, knnGraph.indices);
+        100, 30, knnGraph.distances, knnGraph.indices, 10);
 
     await tsne.iterate();
     await tsne.iterate();
@@ -346,7 +346,7 @@ describe('TSNEOptimizer class', () => {
     const knnGraph = dataset_util.generateKNNClusterData(100, 10, 30);
 
     await tsne.initializeNeighborsFromKNNGraph(
-        100, 30, knnGraph.distances, knnGraph.indices);
+        100, 30, knnGraph.distances, knnGraph.indices, 10);
 
     await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(3);
@@ -367,7 +367,7 @@ describe('TSNEOptimizer class', () => {
 
     const knnGraph = dataset_util.generateKNNClusterData(100, 10, 30);
     await tsne.initializeNeighborsFromKNNGraph(
-        100, 30, knnGraph.distances, knnGraph.indices);
+        100, 30, knnGraph.distances, knnGraph.indices, 10);
 
     await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(3);
@@ -394,7 +394,7 @@ describe('TSNEOptimizer class', () => {
 
     const knnGraph = dataset_util.generateKNNClusterData(100, 10, 30);
     await tsne.initializeNeighborsFromKNNGraph(
-        100, 30, knnGraph.distances, knnGraph.indices);
+        100, 30, knnGraph.distances, knnGraph.indices, 10);
 
     await tsne.iterate();
     expect(tsne.exaggerationAtCurrentIteration).toBeCloseTo(5);

@@ -21,7 +21,9 @@ import * as gl_util from './gl_util';
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 
-export function createEmbeddingSplatterProgram(gpgpu: tf.webgl.GPGPUContext):
+//@ts-ignore
+export function
+  createEmbeddingSplatterProgramOrig(gpgpu: tf.webgl.GPGPUContext):
     WebGLProgram {
   const vertexShaderSource = `#version 300 es
     precision highp float;
@@ -32,7 +34,7 @@ export function createEmbeddingSplatterProgram(gpgpu: tf.webgl.GPGPUContext):
     uniform vec2 maxV;
     uniform float kernel_support;
     uniform float points_per_row;
-    uniform float num_rows;
+    //uniform float num_rows;
 
     out vec2 kernel_coords;
 
@@ -44,13 +46,11 @@ export function createEmbeddingSplatterProgram(gpgpu: tf.webgl.GPGPUContext):
       uint row    = uint((float(pnt_id) + 0.1)/points_per_row);
       uint column = uint(float(pnt_id) - float(row) * points_per_row);
 
-      float width = (points_per_row * 2.0);
-      float row_tex = (float(row) + 0.5) / num_rows;
-      vec2 tex_coords_x = vec2((float(column) * 2. + 0.5) / width, row_tex);
-      vec2 tex_coords_y = vec2((float(column) * 2. + 1.5) / width, row_tex);
-
-      float x_pnt = texture(embedding_tex,tex_coords_x).r;
-      float y_pnt = texture(embedding_tex,tex_coords_y).r;
+      float x_pnt = texelFetch(embedding_tex, 
+        ivec2(column * uint(2), row), 0).r;
+      float y_pnt = texelFetch(embedding_tex, 
+        ivec2((column * uint(2)) + uint(1), row), 0).r;
+      
       vec2 vertex_coords = vec2(x_pnt,y_pnt);
 
       if(quad_id == uint(0)) {kernel_coords = vec2(-1,-1);}
@@ -58,7 +58,10 @@ export function createEmbeddingSplatterProgram(gpgpu: tf.webgl.GPGPUContext):
       else if(quad_id == uint(2)) {kernel_coords = vec2(1,1);}
       else if(quad_id == uint(3)) {kernel_coords = vec2(-1,1);}
 
-      vertex_coords += kernel_coords * kernel_support;      // embedding space
+      // map the vertex coord to clip space by combining
+      // the kernel point offset (scaled by the support)
+      // with the  
+      vertex_coords += kernel_coords * kernel_support; //embedding space
       vertex_coords = (vertex_coords - minV) / (maxV-minV); //  0:1 space
       vertex_coords = vertex_coords * 2.0 - 1.0;            // -1:1 space
 
@@ -79,10 +82,72 @@ export function createEmbeddingSplatterProgram(gpgpu: tf.webgl.GPGPUContext):
       gpgpu.gl, vertexShaderSource, fragmentShaderSource);
 }
 
+//@ts-ignore
+export function createEmbeddingSplatterProgram(gpgpu: tf.webgl.GPGPUContext):
+  WebGLProgram {
+  const vertexShaderSource = `#version 300 es
+    precision highp float;
+    in float vertex_id;
+
+    uniform sampler2D embedding_tex;
+    uniform vec2 minV;
+    uniform vec2 maxV;
+    //uniform float kernel_support;
+    uniform float points_per_row;
+
+    out vec2 kernel_coords;
+
+    void main() {
+      //TODO Clean up and check performance loss due to the conversions
+      uint emb_id = uint((vertex_id / 4.0) + 0.1);
+      uint quad_id = uint(mod(vertex_id + 0.1,4.));
+
+      uint row    = uint((float(emb_id) + 0.1)/points_per_row);
+      uint column = uint(float(emb_id) - float(row) * points_per_row);
+
+      float x_emb = texelFetch(embedding_tex, 
+        ivec2(column * uint(2), row), 0).r;
+      float y_emb = texelFetch(embedding_tex, 
+        ivec2((column * uint(2)) + uint(1), row), 0).r;
+      
+      vec2 embed_coords = vec2(x_emb,y_emb);
+
+      if(quad_id == uint(0)) {kernel_coords = vec2(-1,-1);}
+      else if(quad_id == uint(1)) {kernel_coords = vec2(1,-1);}
+      else if(quad_id == uint(2)) {kernel_coords = vec2(1,1);}
+      else if(quad_id == uint(3)) {kernel_coords = vec2(-1,1);}
+
+      // map the embedding vertex coord to clip space by combining
+      // the kernel point offset (scaled by the support)
+      // and scaling to get the quad corners in clip-space 
+      // embedding space
+      embed_coords += kernel_coords * 2.5; //kernel_support;
+      embed_coords = (embed_coords - minV) / (maxV-minV); //  0:1 space   
+      embed_coords = embed_coords * 2.0 - 1.0;            // -1:1 space
+
+      // kernel quad corner vertex in clip space 
+      gl_Position = vec4(embed_coords,0,1);
+    }
+  `;
+  const fragmentShaderSource = `#version 300 es
+    precision highp float;
+    uniform sampler2D kernel_tex;
+    in vec2 kernel_coords;
+    out vec4 fragmentColor;
+
+    void main() {
+      fragmentColor = texture(kernel_tex,(kernel_coords + 1.) / 2.0);
+    }
+  `;
+  return gl_util.createVertexProgram(
+    gpgpu.gl, vertexShaderSource, fragmentShaderSource);
+}
+
 export function executeEmbeddingSplatterProgram(
     gpgpu: tf.webgl.GPGPUContext, program: WebGLProgram,
     targetTex: WebGLTexture, embeddingTex: WebGLTexture,
-    kernelTex: WebGLTexture, targetTexDiameter: number, numPoints: number,
+    kernelTex: WebGLTexture, targetTexWidth: number, targetTexHeight:
+    number, numPoints: number,
     minX: number, minY: number, maxX: number, maxY: number,
     kernelSupport: number, pntsPerRow: number, numRows: number,
     vertexIdBuffer: WebGLBuffer) {
@@ -91,7 +156,7 @@ export function executeEmbeddingSplatterProgram(
 
   if (targetTex != null) {
     gpgpu.setOutputMatrixTexture(
-        targetTex, targetTexDiameter, targetTexDiameter);
+        targetTex, targetTexWidth, targetTexHeight);
   } else {
     tf.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
   }
@@ -100,7 +165,6 @@ export function executeEmbeddingSplatterProgram(
 
   gl.clearColor(0., 0., 0., 0.);
   gl.clear(gl.COLOR_BUFFER_BIT);
-
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.ONE, gl.ONE);
 
@@ -126,10 +190,6 @@ export function executeEmbeddingSplatterProgram(
   const pntsPerRowLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'points_per_row');
   gl.uniform1f(pntsPerRowLoc, pntsPerRow);
-
-  const numRowsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'num_rows');
-  gl.uniform1f(numRowsLoc, numRows);
 
   const minLoc =
       tf.webgl.webgl_util.getProgramUniformLocationOrThrow(gl, program, 'minV');
@@ -179,7 +239,7 @@ export function createQInterpolatorProgram(gpgpu: tf.webgl.GPGPUContext):
       float emb_width = (points_per_row * 2.0);
       float emb_row_coord = (pnt_location.y + 0.5) / num_rows;
       vec2 emb_coords_x
-              = vec2((pnt_location.x * 2.+0.5) / emb_width, emb_row_coord);
+              = vec2((pnt_location.x * 2. + 0.5) / emb_width, emb_row_coord);
       vec2 emb_coords_y
               = vec2((pnt_location.x * 2. + 1.5) / emb_width, emb_row_coord);
 
@@ -189,8 +249,8 @@ export function createQInterpolatorProgram(gpgpu: tf.webgl.GPGPUContext):
       vec2 splat_coords = vec2(x_pnt,y_pnt);
       splat_coords = (splat_coords - minV) / (maxV - minV); //  0:1 space
 
-      float q = (texture2D(splat_tex,splat_coords).r - 1.);
-
+      float q = max(texture2D(splat_tex,splat_coords).r - 1., 0.);
+      
       gl_FragColor = vec4(q, 0, 0, 1);
     }
   `;
@@ -257,7 +317,7 @@ export function createXYInterpolatorProgram(gpgpu: tf.webgl.GPGPUContext):
     uniform float points_per_row;
     uniform float num_rows;
     uniform float num_points;
-    uniform float eta;
+    //uniform float eta;
 
     void main() {
       vec2 pnt_location = gl_FragCoord.xy - vec2(0.5,0.5);
@@ -282,10 +342,11 @@ export function createXYInterpolatorProgram(gpgpu: tf.webgl.GPGPUContext):
       splat_coords = (splat_coords - minV) / (maxV - minV); //  0:1 space
 
       float q = 0.;
+      // eta moved to updateEmbedding code
       if(mod(gl_FragCoord.x - 0.5,2.) < 0.5 ) {
-        q = texture2D(splat_tex,splat_coords).g * eta * 2.;
+        q = texture2D(splat_tex,splat_coords).g;
       }else{
-        q = texture2D(splat_tex,splat_coords).b * eta * 2.;
+        q = texture2D(splat_tex,splat_coords).b;
       }
 
       gl_FragColor = vec4(q,0.0,0.0,1);
@@ -329,10 +390,6 @@ export function executeXYInterpolatorProgram(
       gl, program, 'num_points');
   gl.uniform1f(numPointsLoc, numPoints);
 
-  const etaLoc =
-      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(gl, program, 'eta');
-  gl.uniform1f(etaLoc, eta);
-
   const minLoc =
       tf.webgl.webgl_util.getProgramUniformLocationOrThrow(gl, program, 'minV');
   gl.uniform2f(minLoc, minX, minY);
@@ -361,7 +418,7 @@ export function createAttractiveForcesComputationProgram(
     uniform float num_rows;
     uniform float num_points;
     uniform float num_neighs_per_row;
-    uniform float eta;
+    //uniform float eta;
 
     void main() {
       //add for nearest pixel interpolation
@@ -403,6 +460,9 @@ export function createAttractiveForcesComputationProgram(
 
       //Sum of all attractive forces
       float sum_pos = 0.;
+      float sum_qij = 0.;
+      float sum_distx2 = 0.;
+      float sum_disty2 = 0.;
 
       //Can't be higher than 1000 (perplexity is usually around 30)
       //and a 'while' can't be used
@@ -432,13 +492,22 @@ export function createAttractiveForcesComputationProgram(
         //Actual computation of the attractive forces
         float dist_x    = (x_i - x_j);
         float dist_y    = (y_i - y_j);
-        float qij       = 1. / (1. + dist_x * dist_x + dist_y * dist_y);
+        float qij       = 1. / (1. + (dist_x * dist_x) + (dist_y * dist_y));
+        sum_distx2 += dist_x * dist_x;
+        sum_disty2 += dist_y * dist_y;
+        sum_qij += qij;
         //the update depends on the dimension that this fragment represents
         if(dimension < 0.5) {
           // * 4 / (num_points*2) -> * 2 / num_points
-          sum_pos += eta * 2. * pij * qij * dist_x / (num_points);
-        }else{
-          sum_pos += eta * 2. * pij * qij * dist_y / (num_points);
+          //<bvl 1- fix attractive force calculation>
+          //sum_pos += eta * 2. * pij * qij * dist_x / (num_points); 
+          // <bvl> remove eta * 2.
+          sum_pos += pij * qij * dist_x / (2.0 * num_points);
+        } else {
+          //<bvl 1- fix attractive force calculation>
+          //sum_pos += eta * 2. * pij * qij * dist_y / (num_points);
+          // <bvl> remove eta * 2.
+          sum_pos += pij * qij * dist_y / (2.0 * num_points);
         }
 
         //Increase the coordinate of the neigh in the neigh_id texture
@@ -452,7 +521,7 @@ export function createAttractiveForcesComputationProgram(
       }
 
       //The output is the sum of the attractive forces
-      gl_FragColor = vec4(sum_pos,0,0,0);
+      gl_FragColor = vec4(sum_pos,dimension,0,1);
     }
   `;
   return gpgpu.createProgram(fragmentShaderSource);
@@ -496,10 +565,6 @@ export function executeAttractiveForcesComputationProgram(
   const numRowsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'num_rows');
   gl.uniform1f(numRowsLoc, numRows);
-
-  const etaLoc =
-      tf.webgl.webgl_util.getProgramUniformLocationOrThrow(gl, program, 'eta');
-  gl.uniform1f(etaLoc, eta);
 
   const neighsPerRowLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
       gl, program, 'num_neighs_per_row');
@@ -608,6 +673,7 @@ export function createDistributionParametersComputationProgram(
     #define MAX_NEIGHBORS 128
     #define MAX_ITERATIONS 500
     #define FLOAT_MAX 10e30
+    #define FLOAT_MIN 10e-30;
     #define TOLERANCE 1e-5
 
     uniform sampler2D knn_graph_tex;
@@ -651,13 +717,13 @@ export function createDistributionParametersComputationProgram(
       float log_perplexity = log(perplexity);
       float entropy_diff = 0.;
       float entropy = 0.;
-      float sum_probabilities = 0.;
+      float sum_probabilities = FLOAT_MIN;
 
       //Binary search for a maximum of MAX_ITERATIONS
       for(int iteration = 0; iteration < MAX_ITERATIONS; ++iteration) {
         //At every iteration I compute the
         //entropy enforced by the current beta
-        sum_probabilities = 0.;
+        sum_probabilities = FLOAT_MIN;
         entropy = 0.;
         for(int n = 0; n < MAX_NEIGHBORS; ++n ) {
           if(float(n) >= num_neighs-0.1) {
@@ -668,7 +734,7 @@ export function createDistributionParametersComputationProgram(
           entropy += beta * distances_squared[n] * neigh_probability;
         }
 
-        entropy = entropy / sum_probabilities + log(sum_probabilities);
+        entropy = (entropy / sum_probabilities) + log(sum_probabilities);
         entropy_diff = entropy - log_perplexity;
 
         //the current beta is good enough!
@@ -703,40 +769,45 @@ export function executeDistributionParametersComputationProgram(
     numPoints: number, numNeighs: number, pntsPerRow: number, numRows: number,
     perplexity: number, targetTex?: WebGLTexture) {
   const gl = gpgpu.gl;
-  if (targetTex != null) {
-    gpgpu.setOutputMatrixTexture(targetTex, numRows, pntsPerRow);
-  } else {
-    tf.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
+  try {
+    if (targetTex != null) {
+      gpgpu.setOutputMatrixTexture(targetTex, numRows, pntsPerRow);
+    } else {
+      tf.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
+    }
+
+    gpgpu.setProgram(program);
+
+    const knnGraphLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
+        gl, program, 'knn_graph_tex');
+    gpgpu.setInputMatrixTexture(knnGraph, knnGraphLoc, 0);
+
+    const numRowsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
+        gl, program, 'num_rows');
+    gl.uniform1f(numRowsLoc, numRows);
+
+    const numPointsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
+        gl, program, 'num_points');
+    gl.uniform1f(numPointsLoc, numPoints);
+
+    const pntsPerRowLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
+        gl, program, 'points_per_row');
+    gl.uniform1f(pntsPerRowLoc, pntsPerRow);
+
+    const numNeighsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
+        gl, program, 'num_neighs');
+    gl.uniform1f(numNeighsLoc, numNeighs);
+
+    const perplexityLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
+        gl, program, 'perplexity');
+    // TODO PASS AS A PARAMETER
+    gl.uniform1f(perplexityLoc, perplexity);
+
+    gpgpu.executeProgram();
+  } catch(e) {
+    console.log('Error in executeDistributionParametersComputationProgram' +
+      e.toString());
   }
-
-  gpgpu.setProgram(program);
-
-  const knnGraphLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'knn_graph_tex');
-  gpgpu.setInputMatrixTexture(knnGraph, knnGraphLoc, 0);
-
-  const numRowsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'num_rows');
-  gl.uniform1f(numRowsLoc, numRows);
-
-  const numPointsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'num_points');
-  gl.uniform1f(numPointsLoc, numPoints);
-
-  const pntsPerRowLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'points_per_row');
-  gl.uniform1f(pntsPerRowLoc, pntsPerRow);
-
-  const numNeighsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'num_neighs');
-  gl.uniform1f(numNeighsLoc, numNeighs);
-
-  const perplexityLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'perplexity');
-  // TODO PASS AS A PARAMETER
-  gl.uniform1f(perplexityLoc, perplexity);
-
-  gpgpu.executeProgram();
 }
 
 ///////////////////////////////////////////////////////////
@@ -794,37 +865,44 @@ export function executeGaussiaDistributionsFromDistancesProgram(
     parameters: WebGLTexture, numPoints: number, numNeighs: number,
     pntsPerRow: number, numRows: number, targetTex?: WebGLTexture) {
   const gl = gpgpu.gl;
-  if (targetTex != null) {
-    gpgpu.setOutputMatrixTexture(targetTex, numRows, pntsPerRow * numNeighs);
-  } else {
-    tf.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
+  try {
+    gpgpu.enableAutomaticDebugValidation(true);
+    if (targetTex != null) {
+      gpgpu.setOutputMatrixTexture(targetTex, numRows, pntsPerRow * numNeighs);
+    } else {
+      tf.webgl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
+    }
+
+    gpgpu.setProgram(program);
+
+    const knnGraphLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
+        gl, program, 'knn_graph_tex');
+    gpgpu.setInputMatrixTexture(knnGraph, knnGraphLoc, 0);
+
+    const parametersLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
+        gl, program, 'parameters_tex');
+    gpgpu.setInputMatrixTexture(parameters, parametersLoc, 1);
+
+    const numRowsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
+        gl, program, 'num_rows');
+    gl.uniform1f(numRowsLoc, numRows);
+
+    const numPointsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
+        gl, program, 'num_points');
+    gl.uniform1f(numPointsLoc, numPoints);
+
+    const pntsPerRowLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
+        gl, program, 'points_per_row');
+    gl.uniform1f(pntsPerRowLoc, pntsPerRow);
+
+    const numNeighsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
+        gl, program, 'num_neighs');
+    gl.uniform1f(numNeighsLoc, numNeighs);
+
+    console.log('Execute Gaussion Dist from Distances');
+    gpgpu.executeProgram();
+  } catch(e) {
+    console.log('Error executing Gaussian Dist From Distances Program ' +
+      e.toString());
   }
-
-  gpgpu.setProgram(program);
-
-  const knnGraphLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'knn_graph_tex');
-  gpgpu.setInputMatrixTexture(knnGraph, knnGraphLoc, 0);
-
-  const parametersLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'parameters_tex');
-  gpgpu.setInputMatrixTexture(parameters, parametersLoc, 1);
-
-  const numRowsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'num_rows');
-  gl.uniform1f(numRowsLoc, numRows);
-
-  const numPointsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'num_points');
-  gl.uniform1f(numPointsLoc, numPoints);
-
-  const pntsPerRowLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'points_per_row');
-  gl.uniform1f(pntsPerRowLoc, pntsPerRow);
-
-  const numNeighsLoc = tf.webgl.webgl_util.getProgramUniformLocationOrThrow(
-      gl, program, 'num_neighs');
-  gl.uniform1f(numNeighsLoc, numNeighs);
-
-  gpgpu.executeProgram();
 }

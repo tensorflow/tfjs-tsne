@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style>
+frame {
+    display: inline-block
+}
+</style>
+</head>
+    <meta charset="UTF-8">
+<body>
+    <h1>AH samples</h1>
+    <p>
+        Compute the t-SNE embedding for 19992 genes x 105 brain samples.
+        (gene/sample data from <a href="http://human.brain-map.org/">Allen Brain Atlas</a>)
+    </p>
+    <p>
+        <div>
+        <figure>
+            <p id="konvaContainer" width="512px" height="512px"></p>
+            <figcaption>GPU texture tSNE (Pezzotti)</figcaption>
+        </figure>
+        </div>
+    </p>
+    <figure>
+        <div>
+            <input id='restartButton' type='button' value='Restart'/>
+            <input id='stopButton' type='button' value='Stop'/>
+            <input id='stepButton' type='button' value='Step'/>
+        </div>
+    </figure>
+    <figure>
+        <div>
+            <label id="sliderVal" for="kNNSlider">max kNN iterations: 120</label>
+            <input id='kNNSlider' min='50' max='250' type='range' value='120' list="knnTicks">
+            <datalist id="knnTicks" style="display:none">
+                <option value="50" label="50">
+                <option value="60">
+                <option value="70">
+                <option value="80">
+                <option value="90">
+                <option value="100" label="100">
+                <option value="110">
+                <option value="120">
+                <option value="130">
+                <option value="140">
+                <option value="150" label="150">
+                <option value="160">
+                <option value="170">
+                <option value="180">
+                <option value="190">
+                <option value="200" label="200">
+                <option value="210">
+                <option value="220">
+                <option value="230">
+                <option value="240">
+                <option value="250" label="250">
+            </datalist>
+            <p id="knnIterCount">knn iteration: 0</p>
+            <p id="tsneIterCount">tsne iteration: 0</p>
+        </div>
+    </figure>
+    <canvas id='canvasR' style="border:1px solid #d3d3d3;"></canvas>
+    <canvas id='canvasG' style="border:1px solid #d3d3d3;"></canvas>
+    <canvas id='canvasB' style="border:1px solid #d3d3d3;"></canvas>
+    <script src="./index.js"></script>
+</body>
+
+</html>

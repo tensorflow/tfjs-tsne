@@ -21,7 +21,8 @@
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "downlevelIteration": true
   },
   "include": [
     "src/"

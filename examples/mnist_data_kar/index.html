@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<body>
+    <h1>MNIST example</h1>
+    <p>
+        Compute the t-SNE embedding for MNIST 28x28 digits. (<a href="https://github.com/karpathy/tsnejs">Karpathy tSNEJS</a>)
+    </p>
+    <p>
+        <div>
+        <figure>
+            <p id="konvaContainer" width="512px" height="512px"></p>
+            <figcaption>Pure javascript tSNE (Karpathy)</figcaption>
+        </figure>
+        <figure>
+            <canvas id="digitCanv" width="56px" height="56px"></canvas>
+            <figcaption>Digit under cursor</figcaption>
+        </figure>
+        </div>
+    </p>
+    <figure>
+        <div>
+            <label id="numDigits" for="ndigitSlider">num digits: 1000</label>
+            <input id='ndigitSlider' min='100' max='6500' type='range' value='1000' list="ndigitTicks">
+            <datalist id="ndigitTicks" style="display:none">
+                <option value="100" label="100">
+                <option value="200">
+                <option value="300">
+                <option value="400">
+                <option value="500">
+                <option value="600" label="600">
+                <option value="700">
+                <option value="800">
+                <option value="900">
+                <option value="1000">
+                <option value="1500" label="1500">
+                <option value="2000">
+                <option value="2500">
+                <option value="3000">
+                <option value="3500">
+                <option value="4000" label="4000">
+                <option value="4500">
+                <option value="5000">
+                <option value="5500">
+                <option value="6000">
+                <option value="6500" label="6500">
+            </datalist>
+        </div>
+        <div>
+            <input id='restartButton' type='button' value='Restart'/>
+            <input id='stopButton' type='button' value='Stop'/>
+        </div>
+    </figure>
+    <figure>
+        <div>
+            <p id="tsneIterCount">tsne iteration: 0</p>
+        </div>
+    </figure>
+    <script src="./index.js"></script>
+</body>
+
+</html>

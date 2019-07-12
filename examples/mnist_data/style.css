@@ -1,0 +1,49 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.scatterPlot {
+    height: 512px;
+    width: 512px;
+    margin: 3px 3px 3px 3px;
+    background-color:transparent;
+}
+
+.texturePlot {
+    height: 256px;
+    width: 256px;
+    margin: 3px 3px 3px 3px;
+    background-color:transparent;
+}
+
+.textureParent {
+    display: flex;
+}
+
+.status {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        color: #000000;
+    }
+    25% {
+        color: #523333;
+    }
+    50% {
+        color: #a4a4a4;
+    }
+    25% {
+        color: #523333;
+    }
+    100% {
+        color: #000000;
+    }
+}
+
+.sameLine {
+    display: inline-block; /* show on the same line */
+    padding-right: 10px; /* small gap on the right of each header */
+}
