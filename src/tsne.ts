@@ -58,7 +58,7 @@ export function maximumPerplexity() {
  * @param data Rank 2 tensor of data to embed
  * @param config configuration options
  */
-export function tsne(data: tf.Tensor, config?: TSNEConfiguration) {
+export function tsne(data: tf.Tensor, config?: Partial<TSNEConfiguration>) {
   return new TSNE(data, config);
 }
 
@@ -71,13 +71,13 @@ export class TSNE {
   private verbose: boolean;
   private knnEstimator: KNNEstimator;
   private optimizer: TSNEOptimizer;
-  private config: TSNEConfiguration;
+  private config: Partial<TSNEConfiguration>;
   private initialized: boolean;
   private probabilitiesInitialized: boolean;
   private knnMode: 'auto'|'bruteForce';
   private appliedPerplexity: number;
 
-  constructor(data: tf.Tensor, config?: TSNEConfiguration) {
+  constructor(data: tf.Tensor, config?: Partial<TSNEConfiguration>) {
     this.initialized = false;
     this.probabilitiesInitialized = false;
     this.data = data;
