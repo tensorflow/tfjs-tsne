@@ -13,7 +13,7 @@ To use tfjs-tsne via script tag you need to load tfjs first. The following tags
 can be put into the head section of your html page to load the library.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.14.1"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tsne"></script>
 ```
 
